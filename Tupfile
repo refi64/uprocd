@@ -1,0 +1,27 @@
+CC = clang
+
+CFLAGS += -fvisibility=hidden
+CFLAGS += -fdiagnostics-color
+CFLAGS += -g
+CFLAGS += -I. -Isrc/common
+CFLAGS += `pkg-config --cflags libbsd hiredis libsystemd`
+
+LDFLAGS += `pkg-config --libs libbsd hiredis libsystemd`
+LDFLAGS += -ldl -lJudy
+
+!cc = |> ^ CC %f^ $(CC) $(CFLAGS) -c %f -o %o |>
+!link = |> ^ LINK %o^ $(CC) %f -o %o $(LDFLAGS) -Wl,--export-dynamic |>
+!linkso = |> ^ LINKSO %o^ $(CC) -shared %f -o %o $(LDFLAGS) |>
+!cp = |> ^ COPY %f^ cp %f %o |>
+
+: modules/simple/simple.updmod |> !cp |> build/modules/simple.updmod
+: modules/simple/simple.c |> !cc |> build/modules.o/simple.o
+
+: build/modules.o/*.o |> !linkso |> build/modules/%B.so
+
+: foreach src/common/*.c |> !cc |> build/common-%B.o
+: foreach src/uprocd/*.c |> !cc |> build/uprocd-%B.o
+#: foreach src/uprocctl/*.c |> !cc |> build/uprocctl-%B.o
+
+: build/common-*.o build/uprocd-*.o |> !link |> build/uprocd
+#: build/common-*.o build/uprocctl-*.o |> !link |> build/uprocctl
