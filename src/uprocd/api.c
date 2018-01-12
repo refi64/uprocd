@@ -8,6 +8,7 @@
 #include <bsd/stdlib.h>
 #include <systemd/sd-bus.h>
 
+#include <fcntl.h>
 #include <unistd.h>
 
 extern char **environ;
@@ -57,6 +58,49 @@ UPROCD_EXPORT void uprocd_context_enter(uprocd_context *ctx) {
   }
 
   chdir(ctx->cwd);
+
+  sds base_path = sdscatfmt(sdsempty(), "/proc/%I/fd/", ctx->pid);
+  sds stdin_path = sdscat(sdsdup(base_path), "0"),
+      stdout_path = sdscat(sdsdup(base_path), "1"),
+      stderr_path = sdscat(sdsdup(base_path), "2");
+
+  int stdin_fd = -1, stdout_fd = -1, stderr_fd = -1;
+
+  stdin_fd = open(stdin_path, O_RDONLY);
+  if (stdin_fd == -1) {
+    FAIL("Error opening stdin at %S: %s", stdin_path, strerror(errno));
+    goto afterfd;
+  }
+  stdout_fd = open(stdout_path, O_WRONLY);
+  if (stdout_fd == -1) {
+    FAIL("Error opening stdout at %S: %s", stdout_path, strerror(errno));
+    close(stdin_fd);
+    goto afterfd;
+  }
+  stderr_fd = open(stderr_path, O_WRONLY);
+  if (stderr_fd == -1) {
+    FAIL("Error opening stderr at %S: %s", stderr_path, strerror(errno));
+    close(stdin_fd);
+    close(stdout_fd);
+    goto afterfd;
+  }
+
+  afterfd:
+  sdsfree(base_path);
+  sdsfree(stdin_path);
+  sdsfree(stdout_path);
+  sdsfree(stderr_path);
+
+  if (stdin_fd == -1 || stdout_fd == -1 || stderr_fd == -1) {
+    return;
+  }
+
+  close(0);
+  close(1);
+  close(2);
+  dup2(stdin_fd, 0);
+  dup2(stdout_fd, 1);
+  dup2(stderr_fd, 2);
 }
 
 sds * convert_env_to_api_format(table *penv) {
