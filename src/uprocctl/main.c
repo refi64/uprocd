@@ -6,6 +6,8 @@
 
 #include <systemd/sd-bus.h>
 
+#include <sys/ptrace.h>
+#include <sys/wait.h>
 #include <unistd.h>
 
 extern char **environ;
@@ -14,7 +16,7 @@ char *prog;
 #define RUN_USAGE "run [-h] module [args...]"
 
 void _fail(sds message) {
-  fprintf(stderr, "%s\n", message);
+  fprintf(stderr, "uprocctl: %s\n", message);
   sdsfree(message);
 }
 
@@ -45,11 +47,45 @@ void run_help() {
   puts("  [args...]   Command line arguments to pass to the module.");
 }
 
+int wait_for_process(int64_t pid) {
+  if (ptrace(PTRACE_SEIZE, pid, NULL, (void*)PTRACE_O_TRACEEXIT) == -1) {
+    FAIL("Error seizing %I via ptrace: %s", pid, strerror(errno));
+    return 1;
+  }
+
+  siginfo_t sig;
+  if (waitid(P_PID, pid, &sig, WEXITED) == -1) {
+    FAIL("Error waiting for %I: %s", pid, strerror(errno));
+    return 1;
+  }
+
+  if (sig.si_code == CLD_EXITED) {
+    return sig.si_status;
+  } else if (sig.si_code == CLD_KILLED || sig.si_code == CLD_DUMPED) {
+    return sig.si_status + 128;
+  } else if (sig.si_code == CLD_TRAPPED) {
+    if (sig.si_status == (SIGTRAP | (PTRACE_EVENT_EXIT<<8))) {
+      unsigned long status;
+      if (ptrace(PTRACE_GETEVENTMSG, pid, NULL, &status) == -1) {
+        FAIL("Error retrieving exit code via ptrace: %s");
+        return 1;
+      }
+      return status >> 8;
+    } else {
+      return sig.si_status + 128;
+    }
+  } else {
+    FAIL("Unexpected sig.si_code: %i (si_status: %i)", sig.si_code, sig.si_status);
+    return 1;
+  }
+}
+
 int run(char *module, int argc, char **argv) {
   sd_bus *bus = NULL;
   sd_bus_message *msg = NULL, *reply = NULL;
   sd_bus_error err = SD_BUS_ERROR_NULL;
   int rc;
+  int64_t pid = -1;
 
   char *cwd = getcwd(NULL, 0);
   if (cwd == NULL) {
@@ -123,12 +159,8 @@ int run(char *module, int argc, char **argv) {
     goto write_end;
   }
 
-  rc = sd_bus_message_append_basic(msg, 's', cwd);
-  if (rc < 0) {
-    goto write_end;
-  }
-
-  rc = sd_bus_message_append(msg, "(sss)", ttyname(0), ttyname(1), ttyname(2));
+  rc = sd_bus_message_append(msg, "s(sss)x", cwd, ttyname(0), ttyname(1), ttyname(2),
+                             getpid());
   if (rc < 0) {
     goto write_end;
   }
@@ -146,6 +178,12 @@ int run(char *module, int argc, char **argv) {
     goto end;
   }
 
+  rc = sd_bus_message_read_basic(reply, 'x', &pid);
+  if (rc < 0) {
+    FAIL("uprocd process bus failed to return the new PID.");
+    goto end;
+  }
+
   end:
   if (cwd) {
     free(cwd);
@@ -157,7 +195,12 @@ int run(char *module, int argc, char **argv) {
   if (bus) {
     sd_bus_unref(bus);
   }
-  return rc < 0 ? 1 : 0;
+
+  if (rc < 0) {
+    return 1;
+  } else {
+    return wait_for_process(pid);
+  }
 }
 
 int main(int argc, char **argv) {

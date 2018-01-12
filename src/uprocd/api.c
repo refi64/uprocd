@@ -8,6 +8,7 @@
 #include <bsd/stdlib.h>
 #include <systemd/sd-bus.h>
 
+#include <sys/prctl.h>
 #include <fcntl.h>
 #include <unistd.h>
 
@@ -161,13 +162,9 @@ int service_method_run(sd_bus_message *msg, void *data, sd_bus_error *buserr) {
   }
 
   char *cwd;
-  rc = sd_bus_message_read_basic(msg, 's', &cwd);
-  if (rc < 0) {
-    goto read_end;
-  }
-
   char *ttys[3];
-  rc = sd_bus_message_read(msg, "(sss)", &ttys[0], &ttys[1], &ttys[2]);
+  int64_t pid;
+  rc = sd_bus_message_read(msg, "s(sss)x", &cwd, &ttys[0], &ttys[1], &ttys[2], &pid);
   if (rc < 0) {
     goto read_end;
   }
@@ -176,6 +173,12 @@ int service_method_run(sd_bus_message *msg, void *data, sd_bus_error *buserr) {
   if (rc < 0) {
     FAIL("Error parsing bus message: %s", strerror(-rc));
     return rc;
+  }
+
+  int wait_for_set_ptracer[2];
+  if (pipe(wait_for_set_ptracer) == -1) {
+    FAIL("Error creating pipe to wait for prctl: %s", strerror(errno));
+    return -errno;
   }
 
   sds *entries = convert_env_to_api_format(&env);
@@ -196,9 +199,22 @@ int service_method_run(sd_bus_message *msg, void *data, sd_bus_error *buserr) {
     sd_bus_message_unref(msg);
     return -errno;
   } else if (child == 0) {
+    prctl(PR_SET_PTRACER, pid, 0, 0);
+    prctl(PR_SET_PDEATHSIG, SIGKILL, 0, 0);
+    write(wait_for_set_ptracer[1], "", 1);
+    close(wait_for_set_ptracer[0]);
+    close(wait_for_set_ptracer[1]);
+
+    setsid();
+
     sd_bus_message_unref(msg);
     longjmp(global_run_data.return_to_loop, 1);
   } else {
+    char byte;
+    read(wait_for_set_ptracer[0], &byte, 1);
+    close(wait_for_set_ptracer[0]);
+    close(wait_for_set_ptracer[1]);
+
     return sd_bus_reply_method_return(msg, "x", child);
   }
 }
