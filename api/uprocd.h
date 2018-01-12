@@ -9,6 +9,8 @@
 
 typedef struct uprocd_context uprocd_context;
 
+UPROCD_EXPORT void uprocd_context_get_args(uprocd_context *ctx, int *pargc,
+                                           char ***pargv);
 UPROCD_EXPORT const char ** uprocd_context_get_env(uprocd_context *ctx);
 UPROCD_EXPORT const char * uprocd_context_get_cwd(uprocd_context *ctx);
 UPROCD_EXPORT void uprocd_context_free(uprocd_context *ctx);

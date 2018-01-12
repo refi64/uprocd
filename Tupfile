@@ -21,7 +21,7 @@ LDFLAGS += -ldl -lJudy
 
 : foreach src/common/*.c |> !cc |> build/common-%B.o
 : foreach src/uprocd/*.c |> !cc |> build/uprocd-%B.o
-#: foreach src/uprocctl/*.c |> !cc |> build/uprocctl-%B.o
+: foreach src/uprocctl/*.c |> !cc |> build/uprocctl-%B.o
 
 : build/common-*.o build/uprocd-*.o |> !link |> build/uprocd
-#: build/common-*.o build/uprocctl-*.o |> !link |> build/uprocctl
+: build/common-*.o build/uprocctl-*.o |> !link |> build/uprocctl

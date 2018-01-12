@@ -14,42 +14,14 @@
 
 #include <sds.h>
 
-#define UPROCD_SERVICE_PREFIX "com.refi64.uprocd"
-#define UPROCD_OBJECT_PREFIX "/com/refi64/uprocd"
-
-#define UPROCD_DBUS_RUN_ARGUMENTS "a{ss}sx"
+#define UPROCD_DBUS_RUN_ARGUMENTS "a{ss}assx"
 #define UPROCD_DBUS_RUN_RETURN "x"
 
 void * alloc(size_t sz);
+void * ralloc(void *p, size_t sz);
 #define newa(ty, n) ((ty*)alloc(sizeof(ty) * n))
 #define new(ty) newa(ty, 1)
 
-/* typedef struct error error; */
-/* struct error { */
-/*   enum { */
-/*     ERR_SUCCESS, */
-/*     ERR_MISC, */
-/*     ERR_ERRNO, */
-/*     ERR_DL, */
-/*     ERR_PARSE, */
-/*   } what; */
-
-/*   union { */
-/*     int errno_; */
-/*     struct { */
-/*       int line; */
-/*     } parse; */
-/*   }; */
-
-/*   sds reason; */
-/* }; */
-
-
-/* #define ERROR_SUCCESS() (error){.what = ERR_SUCCESS, .reason = NULL} */
-/* #define ERROR_MISC(reason_) (error){.what = ERR_MISC, .reason = sdsnew(reason_)} */
-/* #define ERROR_ERRNO() (error){.what = ERR_ERRNO, .errno_ = errno, .reason = NULL} */
-
-/* const char * error_reason(const error *err); */
-/* void error_clear(error *perr); */
+sds get_bus_params(const char *module, sds *pservice, sds *pobject);
 
 #endif

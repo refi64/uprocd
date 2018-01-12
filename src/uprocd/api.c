@@ -5,6 +5,7 @@
 #include "uprocd.h"
 #include "api/uprocd.h"
 
+#include <bsd/stdlib.h>
 #include <systemd/sd-bus.h>
 
 #include <unistd.h>
@@ -12,10 +13,18 @@
 extern char **environ;
 
 struct uprocd_context {
+  int argc;
+  sds *argv;
   sds *env;
   sds cwd;
   int64_t pid;
 };
+
+UPROCD_EXPORT void uprocd_context_get_args(uprocd_context *ctx, int *pargc,
+                                           char ***pargv) {
+  *pargc = ctx->argc;
+  *pargv = ctx->argv;
+}
 
 UPROCD_EXPORT const char ** uprocd_context_get_env(uprocd_context *ctx) {
   return (const char **)ctx->env;
@@ -67,12 +76,12 @@ int service_method_run(sd_bus_message *msg, void *data, sd_bus_error *buserr) {
   table env;
   table_init(&env);
 
-  rc = sd_bus_message_enter_container(msg, SD_BUS_TYPE_ARRAY, "{ss}");
+  rc = sd_bus_message_enter_container(msg, 'a', "{ss}");
   if (rc < 0) {
     goto read_end;
   }
 
-  while ((rc = sd_bus_message_enter_container(msg, SD_BUS_TYPE_DICT_ENTRY, "ss")) > 0) {
+  while ((rc = sd_bus_message_enter_container(msg, 'e', "ss")) > 0) {
     char *name, *value;
     rc = sd_bus_message_read(msg, "ss", &name, &value);
     if (rc < 0) {
@@ -84,6 +93,25 @@ int service_method_run(sd_bus_message *msg, void *data, sd_bus_error *buserr) {
     if (rc < 0) {
       goto read_end;
     }
+  }
+
+  rc = sd_bus_message_exit_container(msg);
+  if (rc < 0) {
+    goto read_end;
+  }
+
+  rc = sd_bus_message_enter_container(msg, SD_BUS_TYPE_ARRAY, "s");
+  if (rc < 0) {
+    goto read_end;
+  }
+
+  int argc = 0;
+  sds *argv = NULL;
+  char *arg;
+  while ((rc = sd_bus_message_read(msg, "s", &arg)) > 0) {
+    argc++;
+    argv = ralloc(argv, argc * sizeof(sds));
+    argv[argc - 1] = sdsnew(arg);
   }
 
   rc = sd_bus_message_exit_container(msg);
@@ -107,6 +135,8 @@ int service_method_run(sd_bus_message *msg, void *data, sd_bus_error *buserr) {
   sds *entries = convert_env_to_api_format(&env);
 
   uprocd_context *ctx = new(uprocd_context);
+  ctx->argc = argc;
+  ctx->argv = argv;
   ctx->env = entries;
   ctx->cwd = sdsnew(cwd);
   ctx->pid = pid;
@@ -115,8 +145,10 @@ int service_method_run(sd_bus_message *msg, void *data, sd_bus_error *buserr) {
   pid_t child = fork();
   if (child == -1) {
     FAIL("fork failed: %s", strerror(errno));
+    sd_bus_message_unref(msg);
     return -errno;
   } else if (child == 0) {
+    sd_bus_message_unref(msg);
     longjmp(global_run_data.return_to_loop, 1);
   } else {
     return sd_bus_reply_method_return(msg, "x", child);
@@ -152,8 +184,8 @@ UPROCD_EXPORT uprocd_context * uprocd_run() {
     goto failure;
   }
 
-  sds service = sdscatfmt(sdsnew(UPROCD_SERVICE_PREFIX), ".%s", global_run_data.module),
-      object = sdscatfmt(sdsnew(UPROCD_OBJECT_PREFIX), "/%s", global_run_data.module);
+  sds service, object;
+  get_bus_params(global_run_data.module, &service, &object);
   rc = sd_bus_add_object_vtable(bus, &slot, object, service, service_vtable, NULL);
   if (rc < 0) {
     FAIL("sd_bus_add_object_vtable failed: %s", strerror(-rc));
