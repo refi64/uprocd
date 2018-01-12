@@ -159,6 +159,7 @@ int main(int argc, char **argv, char **envp) {
 
   global_run_data.module = module;
   global_run_data.process_name = cfg->process_name ? sdsdup(cfg->process_name) : NULL;
+  global_run_data.description = cfg->description ? sdsdup(cfg->description) : NULL;
   global_run_data.exit_handler = NULL;
   global_run_data.exit_handler_userdata = NULL;
   global_run_data.upcoming_context = NULL;
@@ -172,6 +173,7 @@ int main(int argc, char **argv, char **envp) {
     handle.entry();
   }
 
-  free(global_run_data.process_name);
+  sdsfree(global_run_data.process_name);
+  sdsfree(global_run_data.description);
   return result;
 }

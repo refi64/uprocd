@@ -4,8 +4,10 @@
 
 #include "common.h"
 
+#include <bsd/unistd.h>
 #include <systemd/sd-bus.h>
 
+#include <sys/prctl.h>
 #include <sys/ptrace.h>
 #include <sys/wait.h>
 #include <unistd.h>
@@ -196,6 +198,8 @@ int run(char *module, int argc, char **argv) {
     goto end;
   }
 
+  setproctitle("-%s", module);
+
   rc = sd_bus_message_read_basic(reply, 'x', &target_pid);
   if (rc < 0) {
     FAIL("uprocd process bus failed to return the new PID.");
@@ -225,7 +229,8 @@ int run(char *module, int argc, char **argv) {
   }
 }
 
-int main(int argc, char **argv) {
+int main(int argc, char **argv, char **envp) {
+  setproctitle_init(argc, argv, envp);
   prog = argv[0];
   int opt;
 

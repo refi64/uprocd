@@ -103,6 +103,9 @@ config *config_parse(const char *path) {
       if (strcmp(key, "ProcessName") == 0) {
         cfg->process_name = sdsdup(value);
         goto parse_end;
+      } else if (strcmp(key, "Description") == 0) {
+        cfg->description = sdsdup(value);
+        goto parse_end;
       }
 
       switch (cfg->kind) {
@@ -157,6 +160,12 @@ config *config_parse(const char *path) {
 void config_free(config *cfg) {
   if (cfg->path) {
     sdsfree(cfg->path);
+  }
+  if (cfg->process_name) {
+    sdsfree(cfg->process_name);
+  }
+  if (cfg->description) {
+    sdsfree(cfg->description);
   }
 
   switch (cfg->kind) {

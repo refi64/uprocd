@@ -6,6 +6,7 @@
 #include "api/uprocd.h"
 
 #include <bsd/stdlib.h>
+#include <bsd/unistd.h>
 #include <systemd/sd-bus.h>
 
 #include <sys/ioctl.h>
@@ -204,6 +205,9 @@ int service_method_run(sd_bus_message *msg, void *data, sd_bus_error *buserr) {
     write(wait_for_set_ptracer[1], "", 1);
     close(wait_for_set_ptracer[0]);
     close(wait_for_set_ptracer[1]);
+
+    setproctitle(" %s", global_run_data.process_name ? global_run_data.process_name :
+                        global_run_data.module);
 
     sd_bus_message_unref(msg);
     longjmp(global_run_data.return_to_loop, 1);

@@ -4,3 +4,4 @@
 
 [NativeModule]
 NativeLib=simple
+ProcessName=simple

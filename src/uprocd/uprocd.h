@@ -30,7 +30,7 @@ void table_free(table *tbl);
 
 typedef struct config {
   enum { CONFIG_NATIVE_MODULE = 1, CONFIG_DERIVED_MODULE } kind;
-  sds path, process_name;
+  sds path, process_name, description;
   union {
     struct {
       sds native_lib;
@@ -42,7 +42,8 @@ config *config_parse(const char *path);
 void config_free(config *cfg);
 
 struct {
-  char *module, *process_name;
+  char *module;
+  sds process_name, description;
   jmp_buf return_to_main, return_to_loop;
   void *exit_handler, *exit_handler_userdata;
   void *upcoming_context;
