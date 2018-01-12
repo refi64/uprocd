@@ -4,9 +4,9 @@ CFLAGS += -fvisibility=hidden
 CFLAGS += -fdiagnostics-color
 CFLAGS += -g
 CFLAGS += -I. -Isrc/common
-CFLAGS += `pkg-config --cflags libbsd hiredis libsystemd`
+CFLAGS += `pkg-config --cflags hiredis libsystemd`
 
-LDFLAGS += `pkg-config --libs libbsd hiredis libsystemd`
+LDFLAGS += `pkg-config --libs hiredis libsystemd`
 LDFLAGS += -ldl -lJudy
 
 !cc = |> ^ CC %f^ $(CC) $(CFLAGS) -c %f -o %o |>

@@ -4,7 +4,6 @@
 
 #include "common.h"
 
-#include <bsd/unistd.h>
 #include <systemd/sd-bus.h>
 
 #include <sys/prctl.h>
@@ -105,6 +104,7 @@ int run(char *module, int argc, char **argv) {
   sd_bus_message *msg = NULL, *reply = NULL;
   sd_bus_error err = SD_BUS_ERROR_NULL;
   int rc;
+  char *title;
 
   char *cwd = getcwd(NULL, 0);
   if (cwd == NULL) {
@@ -198,13 +198,13 @@ int run(char *module, int argc, char **argv) {
     goto end;
   }
 
-  setproctitle("-%s", module);
-
-  rc = sd_bus_message_read_basic(reply, 'x', &target_pid);
+  rc = sd_bus_message_read(reply, "xs", &target_pid, &title);
   if (rc < 0) {
     FAIL("uprocd process bus failed to return the new PID.");
     goto end;
   }
+
+  setproctitle("-%s", title);
 
   end:
   if (cwd) {
@@ -229,10 +229,9 @@ int run(char *module, int argc, char **argv) {
   }
 }
 
-int main(int argc, char **argv, char **envp) {
-  setproctitle_init(argc, argv, envp);
+int main(int argc, char **argv) {
+  setproctitle_init(argc, argv);
   prog = argv[0];
-  int opt;
 
   if (argc < 2) {
     FAIL("An argument is required.");

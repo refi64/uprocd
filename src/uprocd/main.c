@@ -6,7 +6,6 @@
 #include "uprocd.h"
 #include "api/uprocd.h"
 
-#include <bsd/unistd.h>
 #include <systemd/sd-daemon.h>
 
 #include <sys/wait.h>
@@ -136,8 +135,8 @@ void clear_child(int sig) {
   waitpid(-1, NULL, WNOHANG);
 }
 
-int main(int argc, char **argv, char **envp) {
-  setproctitle_init(argc, argv, envp);
+int main(int argc, char **argv) {
+  setproctitle_init(argc, argv);
 
   if (argc != 3 || argv[1][0] != '+' || argv[1][1] != '\0') {
     fprintf(stderr, "uprocd should only be explicitly called by systemd!");
@@ -145,6 +144,7 @@ int main(int argc, char **argv, char **envp) {
   }
 
   char *module = argv[2];
+  setproctitle("-uprocd:%s", module);
 
   config *cfg = load_config(module);
   if (cfg == NULL) {
@@ -167,7 +167,6 @@ int main(int argc, char **argv, char **envp) {
 
   int result;
   if ((result = setjmp(global_run_data.return_to_main)) == 0) {
-    setproctitle("%s", module);
     INFO("Entering uprocd_run...");
     signal(SIGCHLD, clear_child);
     handle.entry();

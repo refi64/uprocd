@@ -15,9 +15,9 @@
 #include <sds.h>
 
 // Run(Array<DictEntry<String>> env, Array<String> argv, String cwd,
-//     Tuple<String, String, String> ttys, Int64 uprocctl_pid)
+//     Tuple<String, String, String> ttys, Int64 uprocctl_pid) -> Int64 pid, String name
 #define UPROCD_DBUS_RUN_ARGUMENTS "a{ss}ass(sss)x"
-#define UPROCD_DBUS_RUN_RETURN "x"
+#define UPROCD_DBUS_RUN_RETURN "xs"
 
 void * alloc(size_t sz);
 void * ralloc(void *p, size_t sz);
@@ -25,5 +25,10 @@ void * ralloc(void *p, size_t sz);
 #define new(ty) newa(ty, 1)
 
 void get_bus_params(const char *module, sds *pservice, sds *pobject);
+
+extern void *__setproctitle_mem;
+void __setproctitle_init(char **argv);
+#define setproctitle_init(argc, argv, ...) __setproctitle_init(argv)
+void setproctitle(const char *fmt, ...);
 
 #endif
