@@ -74,15 +74,13 @@ int run(char *module, int argc, char **argv) {
 
   rc = sd_bus_message_open_container(msg, 'a', "{ss}");
   if (rc < 0) {
-    FAIL("sd_bus_message_open_container for env array failed: %s", strerror(-rc));
-    goto end;
+    goto write_end;
   }
 
   for (char **p = environ; *p; p++) {
     rc = sd_bus_message_open_container(msg, 'e', "ss");
     if (rc < 0) {
-      FAIL("sd_bus_message_open_container for env entry failed: %s", strerror(-rc));
-      goto end;
+      goto write_end;
     }
 
     sds env = sdsnew(*p), key = sdsdup(env), value = sdsdup(env);
@@ -94,46 +92,50 @@ int run(char *module, int argc, char **argv) {
     sdsfree(key);
     sdsfree(value);
     if (rc < 0) {
-      FAIL("sd_bus_message_append for env entries failed: %s", strerror(-rc));
-      goto end;
+      goto write_end;
     }
 
     rc = sd_bus_message_close_container(msg);
     if (rc < 0) {
-      FAIL("sd_bus_message_close_container for env entry failed: %s", strerror(-rc));
-      goto end;
+      goto write_end;
     }
   }
 
   rc = sd_bus_message_close_container(msg);
   if (rc < 0) {
-    FAIL("sd_bus_message_close_container for env array failed: %s", strerror(-rc));
-    goto end;
+    goto write_end;
   }
 
   rc = sd_bus_message_open_container(msg, 'a', "s");
   if (rc < 0) {
-    FAIL("sd_bus_message_open_container for argv failed: %s", strerror(-rc));
-    goto end;
+    goto write_end;
   }
 
   for (int i = 0; i < argc; i++) {
     rc = sd_bus_message_append_basic(msg, 's', argv[i]);
     if (rc < 0) {
-      FAIL("sd_bus_message_append_basic for argv failed: %s", strerror(-rc));
-      goto end;
+      goto write_end;
     }
   }
 
   rc = sd_bus_message_close_container(msg);
   if (rc < 0) {
-    FAIL("sd_bus_message_close_container for argv failed: %s", strerror(-rc));
-    goto end;
+    goto write_end;
   }
 
-  rc = sd_bus_message_append(msg, "sx", cwd, (int64_t)getpid());
+  rc = sd_bus_message_append_basic(msg, 's', cwd);
   if (rc < 0) {
-    FAIL("sd_bus_message_append for cwd+pid failed: %s", strerror(-rc));
+    goto write_end;
+  }
+
+  rc = sd_bus_message_append(msg, "(sss)", ttyname(0), ttyname(1), ttyname(2));
+  if (rc < 0) {
+    goto write_end;
+  }
+
+  write_end:
+  if (rc < 0) {
+    FAIL("Error writing bus message: %s", strerror(-rc));
     goto end;
   }
 

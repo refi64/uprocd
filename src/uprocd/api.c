@@ -18,7 +18,7 @@ struct uprocd_context {
   sds *argv;
   sds *env;
   sds cwd;
-  int64_t pid;
+  sds ttys[3];
 };
 
 UPROCD_EXPORT void uprocd_context_get_args(uprocd_context *ctx, int *pargc,
@@ -40,7 +40,14 @@ UPROCD_EXPORT void uprocd_context_free(uprocd_context *ctx) {
     sdsfree(*p);
   }
   free(ctx->env);
+  for (int i = 0; i < ctx->argc; i++) {
+    sdsfree(ctx->argv[i]);
+  }
+  free(ctx->argv);
   sdsfree(ctx->cwd);
+  sdsfree(ctx->ttys[0]);
+  sdsfree(ctx->ttys[1]);
+  sdsfree(ctx->ttys[2]);
   free(ctx);
 }
 
@@ -59,38 +66,28 @@ UPROCD_EXPORT void uprocd_context_enter(uprocd_context *ctx) {
 
   chdir(ctx->cwd);
 
-  sds base_path = sdscatfmt(sdsempty(), "/proc/%I/fd/", ctx->pid);
-  sds stdin_path = sdscat(sdsdup(base_path), "0"),
-      stdout_path = sdscat(sdsdup(base_path), "1"),
-      stderr_path = sdscat(sdsdup(base_path), "2");
-
   int stdin_fd = -1, stdout_fd = -1, stderr_fd = -1;
 
-  stdin_fd = open(stdin_path, O_RDONLY);
+  stdin_fd = open(ctx->ttys[0], O_RDONLY);
   if (stdin_fd == -1) {
-    FAIL("Error opening stdin at %S: %s", stdin_path, strerror(errno));
+    FAIL("Error opening stdin at %S: %s", ctx->ttys[0], strerror(errno));
     goto afterfd;
   }
-  stdout_fd = open(stdout_path, O_WRONLY);
+  stdout_fd = open(ctx->ttys[1], O_WRONLY);
   if (stdout_fd == -1) {
-    FAIL("Error opening stdout at %S: %s", stdout_path, strerror(errno));
+    FAIL("Error opening stdout at %S: %s", ctx->ttys[1], strerror(errno));
     close(stdin_fd);
     goto afterfd;
   }
-  stderr_fd = open(stderr_path, O_WRONLY);
+  stderr_fd = open(ctx->ttys[2], O_WRONLY);
   if (stderr_fd == -1) {
-    FAIL("Error opening stderr at %S: %s", stderr_path, strerror(errno));
+    FAIL("Error opening stderr at %S: %s", ctx->ttys[2], strerror(errno));
     close(stdin_fd);
     close(stdout_fd);
     goto afterfd;
   }
 
   afterfd:
-  sdsfree(base_path);
-  sdsfree(stdin_path);
-  sdsfree(stdout_path);
-  sdsfree(stderr_path);
-
   if (stdin_fd == -1 || stdout_fd == -1 || stderr_fd == -1) {
     return;
   }
@@ -164,8 +161,13 @@ int service_method_run(sd_bus_message *msg, void *data, sd_bus_error *buserr) {
   }
 
   char *cwd;
-  int64_t pid;
-  rc = sd_bus_message_read(msg, "sx", &cwd, &pid);
+  rc = sd_bus_message_read_basic(msg, 's', &cwd);
+  if (rc < 0) {
+    goto read_end;
+  }
+
+  char *ttys[3];
+  rc = sd_bus_message_read(msg, "(sss)", &ttys[0], &ttys[1], &ttys[2]);
   if (rc < 0) {
     goto read_end;
   }
@@ -183,7 +185,9 @@ int service_method_run(sd_bus_message *msg, void *data, sd_bus_error *buserr) {
   ctx->argv = argv;
   ctx->env = entries;
   ctx->cwd = sdsnew(cwd);
-  ctx->pid = pid;
+  ctx->ttys[0] = sdsnew(ttys[0]);
+  ctx->ttys[1] = sdsnew(ttys[1]);
+  ctx->ttys[2] = sdsnew(ttys[2]);
   global_run_data.upcoming_context = ctx;
 
   pid_t child = fork();

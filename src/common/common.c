@@ -24,7 +24,7 @@ void * ralloc(void *p, size_t sz) {
   return p;
 }
 
-sds get_bus_params(const char *module, sds *pservice, sds *pobject) {
+void get_bus_params(const char *module, sds *pservice, sds *pobject) {
   *pservice = sdscat(sdsnew("com.refi64.uprocd.modules."), module);
   *pobject = sdscat(sdsnew("/com/refi64/uprocd/modules/"), module);
 }

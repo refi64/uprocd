@@ -14,7 +14,9 @@
 
 #include <sds.h>
 
-#define UPROCD_DBUS_RUN_ARGUMENTS "a{ss}assx"
+// Run(Array<DictEntry<String>> env, Array<String> argv, String cwd,
+//     Tuple<String, String, String> ttys)
+#define UPROCD_DBUS_RUN_ARGUMENTS "a{ss}ass(sss)"
 #define UPROCD_DBUS_RUN_RETURN "x"
 
 void * alloc(size_t sz);
@@ -22,6 +24,6 @@ void * ralloc(void *p, size_t sz);
 #define newa(ty, n) ((ty*)alloc(sizeof(ty) * n))
 #define new(ty) newa(ty, 1)
 
-sds get_bus_params(const char *module, sds *pservice, sds *pobject);
+void get_bus_params(const char *module, sds *pservice, sds *pobject);
 
 #endif

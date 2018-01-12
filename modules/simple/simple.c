@@ -13,4 +13,6 @@ UPROCD_EXPORT void uprocd_module_entry() {
   puts("Got uprocd_context...");
   uprocd_context_enter(ctx);
   puts("Entered context!");
+  sleep(5);
+  puts("Finished sleep!");
 }
