@@ -9,7 +9,9 @@
 #include <bsd/unistd.h>
 #include <systemd/sd-daemon.h>
 
+#include <sys/wait.h>
 #include <dlfcn.h>
+#include <signal.h>
 #include <unistd.h>
 
 void _message(int failure, sds error) {
@@ -130,6 +132,10 @@ int load_dl_handle(const char *module, config *cfg, dl_handle *phandle) {
   return 1;
 }
 
+void clear_child(int sig) {
+  waitpid(-1, NULL, WNOHANG);
+}
+
 int main(int argc, char **argv, char **envp) {
   setproctitle_init(argc, argv, envp);
 
@@ -162,6 +168,7 @@ int main(int argc, char **argv, char **envp) {
   if ((result = setjmp(global_run_data.return_to_main)) == 0) {
     setproctitle("%s", module);
     INFO("Entering uprocd_run...");
+    signal(SIGCHLD, clear_child);
     handle.entry();
   }
 

@@ -12,6 +12,7 @@
 
 extern char **environ;
 char *prog;
+int64_t target_pid = -1;
 
 #define RUN_USAGE "run [-h] module [args...]"
 
@@ -47,37 +48,54 @@ void run_help() {
   puts("  [args...]   Command line arguments to pass to the module.");
 }
 
-int wait_for_process(int64_t pid) {
-  if (ptrace(PTRACE_SEIZE, pid, NULL, (void*)PTRACE_O_TRACEEXIT) == -1) {
-    FAIL("Error seizing %I via ptrace: %s", pid, strerror(errno));
+int wait_for_process() {
+  if (ptrace(PTRACE_SEIZE, target_pid, NULL, (void*)PTRACE_O_TRACEEXIT) == -1) {
+    FAIL("Error seizing %I via ptrace: %s", target_pid, strerror(errno));
     return 1;
   }
 
   siginfo_t sig;
-  if (waitid(P_PID, pid, &sig, WEXITED) == -1) {
-    FAIL("Error waiting for %I: %s", pid, strerror(errno));
+  if (waitid(P_PID, target_pid, &sig, WEXITED) == -1) {
+    FAIL("Error waiting for %I: %s", target_pid, strerror(errno));
     return 1;
   }
 
-  if (sig.si_code == CLD_EXITED) {
-    return sig.si_status;
-  } else if (sig.si_code == CLD_KILLED || sig.si_code == CLD_DUMPED) {
-    return sig.si_status + 128;
-  } else if (sig.si_code == CLD_TRAPPED) {
-    if (sig.si_status == (SIGTRAP | (PTRACE_EVENT_EXIT<<8))) {
-      unsigned long status;
-      if (ptrace(PTRACE_GETEVENTMSG, pid, NULL, &status) == -1) {
-        FAIL("Error retrieving exit code via ptrace: %s");
-        return 1;
-      }
-      return status >> 8;
-    } else {
+  for (;;) {
+    if (sig.si_code == CLD_EXITED) {
+      return sig.si_status;
+    } else if (sig.si_code == CLD_KILLED || sig.si_code == CLD_DUMPED) {
       return sig.si_status + 128;
+    } else if (sig.si_code == CLD_TRAPPED) {
+      if (sig.si_status == (SIGTRAP | (PTRACE_EVENT_EXIT<<8))) {
+        unsigned long status;
+        if (ptrace(PTRACE_GETEVENTMSG, target_pid, NULL, &status) == -1) {
+          FAIL("Error retrieving exit code via ptrace: %s", strerror(errno));
+          return 1;
+        }
+        return status >> 8;
+      } else {
+        if (ptrace(PTRACE_CONT, target_pid, NULL, (void*)(long)sig.si_status) == -1) {
+          /* puts("Failed"); */
+          return sig.si_status + 128;
+        } else {
+          /* puts("This one worked"); */
+          continue;
+        }
+      }
+    } else {
+      FAIL("Unexpected sig.si_code: %i (si_status: %i)", sig.si_code, sig.si_status);
+      return 1;
     }
-  } else {
-    FAIL("Unexpected sig.si_code: %i (si_status: %i)", sig.si_code, sig.si_status);
-    return 1;
   }
+}
+
+void forward_signal(int sig) {
+  if (target_pid < 1) {
+    FAIL("target_pid == %I in forward_signal", target_pid);
+    abort();
+  }
+  /* printf("%d\n", sig); */
+  kill(target_pid, sig);
 }
 
 int run(char *module, int argc, char **argv) {
@@ -85,11 +103,11 @@ int run(char *module, int argc, char **argv) {
   sd_bus_message *msg = NULL, *reply = NULL;
   sd_bus_error err = SD_BUS_ERROR_NULL;
   int rc;
-  int64_t pid = -1;
 
   char *cwd = getcwd(NULL, 0);
   if (cwd == NULL) {
     FAIL("Error retrieving current working directory: %s", strerror(errno));
+    rc = -errno;
     goto end;
   }
 
@@ -178,7 +196,7 @@ int run(char *module, int argc, char **argv) {
     goto end;
   }
 
-  rc = sd_bus_message_read_basic(reply, 'x', &pid);
+  rc = sd_bus_message_read_basic(reply, 'x', &target_pid);
   if (rc < 0) {
     FAIL("uprocd process bus failed to return the new PID.");
     goto end;
@@ -199,7 +217,11 @@ int run(char *module, int argc, char **argv) {
   if (rc < 0) {
     return 1;
   } else {
-    return wait_for_process(pid);
+    for (int sig = 0; sig < 31; sig++) {
+      signal(sig, forward_signal);
+    }
+
+    return wait_for_process();
   }
 }
 

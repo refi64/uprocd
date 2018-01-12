@@ -6,6 +6,11 @@
 
 #include <stdio.h>
 #include <unistd.h>
+#include <signal.h>
+
+void sig(int s) {
+  puts("Got signal");
+}
 
 UPROCD_EXPORT void uprocd_module_entry() {
   puts("Inside uprocd_module_entry");
@@ -13,6 +18,7 @@ UPROCD_EXPORT void uprocd_module_entry() {
   puts("Got uprocd_context...");
   uprocd_context_enter(ctx);
   puts("Entered context!");
-  sleep(1);
+  signal(SIGINT, sig);
+  sleep(10);
   puts("Finished sleep!");
 }

@@ -8,6 +8,7 @@
 #include <bsd/stdlib.h>
 #include <systemd/sd-bus.h>
 
+#include <sys/ioctl.h>
 #include <sys/prctl.h>
 #include <fcntl.h>
 #include <unistd.h>
@@ -16,10 +17,8 @@ extern char **environ;
 
 struct uprocd_context {
   int argc;
-  sds *argv;
-  sds *env;
-  sds cwd;
-  sds ttys[3];
+  sds *argv, *env;
+  sds cwd, ttys[3];
 };
 
 UPROCD_EXPORT void uprocd_context_get_args(uprocd_context *ctx, int *pargc,
@@ -99,6 +98,8 @@ UPROCD_EXPORT void uprocd_context_enter(uprocd_context *ctx) {
   dup2(stdin_fd, 0);
   dup2(stdout_fd, 1);
   dup2(stderr_fd, 2);
+
+  setsid();
 }
 
 sds * convert_env_to_api_format(table *penv) {
@@ -161,8 +162,7 @@ int service_method_run(sd_bus_message *msg, void *data, sd_bus_error *buserr) {
     goto read_end;
   }
 
-  char *cwd;
-  char *ttys[3];
+  char *cwd, *ttys[3];
   int64_t pid;
   rc = sd_bus_message_read(msg, "s(sss)x", &cwd, &ttys[0], &ttys[1], &ttys[2], &pid);
   if (rc < 0) {
@@ -204,8 +204,6 @@ int service_method_run(sd_bus_message *msg, void *data, sd_bus_error *buserr) {
     write(wait_for_set_ptracer[1], "", 1);
     close(wait_for_set_ptracer[0]);
     close(wait_for_set_ptracer[1]);
-
-    setsid();
 
     sd_bus_message_unref(msg);
     longjmp(global_run_data.return_to_loop, 1);
@@ -274,7 +272,7 @@ UPROCD_EXPORT uprocd_context * uprocd_run() {
     }
 
     rc = sd_bus_wait(bus, (uint64_t)-1);
-    if (rc < 0) {
+    if (rc < 0 && rc != -EINTR) {
       FAIL("sd_bus_wait failed: %s", strerror(-rc));
       goto failure;
     }
