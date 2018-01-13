@@ -14,7 +14,7 @@ LDFLAGS += -ldl -lJudy
 !linkso = |> ^ LINKSO %o^ $(CC) -shared %f -o %o $(LDFLAGS) |>
 !cp = |> ^ COPY %f^ cp %f %o |>
 
-: modules/simple/simple.updmod |> !cp |> build/modules/simple.updmod
+: modules/simple/simple.module |> !cp |> build/modules/simple.module
 : modules/simple/simple.c |> !cc |> build/modules.o/simple.o
 
 : build/modules.o/*.o |> !linkso |> build/modules/%B.so

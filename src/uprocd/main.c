@@ -51,7 +51,7 @@ config *load_config(const char *module) {
       path = newpath;
     }
 
-    sds test_path = sdscatfmt(sdsdup(path), "/%s.updmod", module);
+    sds test_path = sdscatfmt(sdsdup(path), "/%s.module", module);
     INFO("Searching %S...", test_path);
     if (access(test_path, F_OK) != -1) {
       module_path = test_path;
@@ -60,7 +60,7 @@ config *load_config(const char *module) {
     }
 
     sdsfree(test_path);
-    test_path = sdscatfmt(sdsdup(path), "/%s/%s.updmod", module, module);
+    test_path = sdscatfmt(sdsdup(path), "/%s/%s.module", module, module);
     INFO("Searching %S...", test_path);
     if (access(test_path, F_OK) != -1) {
       module_path = test_path;
