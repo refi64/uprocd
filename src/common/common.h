@@ -15,8 +15,8 @@
 #include <sds.h>
 
 // Run(Array<DictEntry<String>> env, Array<String> argv, String cwd,
-//     Tuple<String, String, String> ttys, Int64 uprocctl_pid) -> Int64 pid, String name
-#define UPROCD_DBUS_RUN_ARGUMENTS "a{ss}ass(sss)x"
+//     Tuple<Fd, Fd, Fd> ttys, Int64 uprocctl_pid) -> Int64 pid, String name
+#define UPROCD_DBUS_RUN_ARGUMENTS "a{ss}ass(hhh)x"
 #define UPROCD_DBUS_RUN_RETURN "xs"
 
 void * alloc(size_t sz);

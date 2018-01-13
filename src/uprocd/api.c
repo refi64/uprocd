@@ -17,7 +17,8 @@ extern char **environ;
 struct uprocd_context {
   int argc;
   sds *argv, *env;
-  sds cwd, ttys[3];
+  sds cwd;
+  int fds[3];
 };
 
 UPROCD_EXPORT void uprocd_context_get_args(uprocd_context *ctx, int *pargc,
@@ -44,9 +45,9 @@ UPROCD_EXPORT void uprocd_context_free(uprocd_context *ctx) {
   }
   free(ctx->argv);
   sdsfree(ctx->cwd);
-  sdsfree(ctx->ttys[0]);
-  sdsfree(ctx->ttys[1]);
-  sdsfree(ctx->ttys[2]);
+  close(ctx->fds[0]);
+  close(ctx->fds[1]);
+  close(ctx->fds[2]);
   free(ctx);
 }
 
@@ -65,38 +66,12 @@ UPROCD_EXPORT void uprocd_context_enter(uprocd_context *ctx) {
 
   chdir(ctx->cwd);
 
-  int stdin_fd = -1, stdout_fd = -1, stderr_fd = -1;
-
-  stdin_fd = open(ctx->ttys[0], O_RDONLY);
-  if (stdin_fd == -1) {
-    FAIL("Error opening stdin at %S: %s", ctx->ttys[0], strerror(errno));
-    goto afterfd;
-  }
-  stdout_fd = open(ctx->ttys[1], O_WRONLY);
-  if (stdout_fd == -1) {
-    FAIL("Error opening stdout at %S: %s", ctx->ttys[1], strerror(errno));
-    close(stdin_fd);
-    goto afterfd;
-  }
-  stderr_fd = open(ctx->ttys[2], O_WRONLY);
-  if (stderr_fd == -1) {
-    FAIL("Error opening stderr at %S: %s", ctx->ttys[2], strerror(errno));
-    close(stdin_fd);
-    close(stdout_fd);
-    goto afterfd;
-  }
-
-  afterfd:
-  if (stdin_fd == -1 || stdout_fd == -1 || stderr_fd == -1) {
-    return;
-  }
-
   close(0);
   close(1);
   close(2);
-  dup2(stdin_fd, 0);
-  dup2(stdout_fd, 1);
-  dup2(stderr_fd, 2);
+  dup2(ctx->fds[0], 0);
+  dup2(ctx->fds[1], 1);
+  dup2(ctx->fds[2], 2);
 
   setsid();
 }
@@ -161,9 +136,10 @@ int service_method_run(sd_bus_message *msg, void *data, sd_bus_error *buserr) {
     goto read_end;
   }
 
-  char *cwd, *ttys[3];
+  char *cwd;
+  int fds[3];
   int64_t pid;
-  rc = sd_bus_message_read(msg, "s(sss)x", &cwd, &ttys[0], &ttys[1], &ttys[2], &pid);
+  rc = sd_bus_message_read(msg, "s(hhh)x", &cwd, &fds[0], &fds[1], &fds[2], &pid);
   if (rc < 0) {
     goto read_end;
   }
@@ -187,9 +163,9 @@ int service_method_run(sd_bus_message *msg, void *data, sd_bus_error *buserr) {
   ctx->argv = argv;
   ctx->env = entries;
   ctx->cwd = sdsnew(cwd);
-  ctx->ttys[0] = sdsnew(ttys[0]);
-  ctx->ttys[1] = sdsnew(ttys[1]);
-  ctx->ttys[2] = sdsnew(ttys[2]);
+  ctx->fds[0] = dup(fds[0]);
+  ctx->fds[1] = dup(fds[1]);
+  ctx->fds[2] = dup(fds[2]);
   global_run_data.upcoming_context = ctx;
 
   pid_t child = fork();

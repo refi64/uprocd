@@ -179,8 +179,7 @@ int run(char *module, int argc, char **argv) {
     goto write_end;
   }
 
-  rc = sd_bus_message_append(msg, "s(sss)x", cwd, ttyname(0), ttyname(1), ttyname(2),
-                             getpid());
+  rc = sd_bus_message_append(msg, "s(hhh)x", cwd, dup(0), dup(1), dup(2), getpid());
   if (rc < 0) {
     goto write_end;
   }
