@@ -17,6 +17,8 @@ LDFLAGS += -ldl -lJudy
 : modules/simple/simple.module |> !cp |> build/modules/simple.module
 : modules/simple/simple.c |> !cc |> build/modules.o/simple.o
 
+: modules/derived/derived.module |> !cp |> build/modules/derived.module
+
 : build/modules.o/*.o |> !linkso |> build/modules/%B.so
 
 : foreach src/common/*.c |> !cc |> build/common-%B.o

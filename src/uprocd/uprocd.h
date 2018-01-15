@@ -28,13 +28,40 @@ void * table_get(table *tbl, const char *key);
 char * table_next(table *tbl, char *prev, void **value);
 void table_free(table *tbl);
 
+typedef struct user_type {
+  enum { TYPE_NONE, TYPE_LIST, TYPE_STRING, TYPE_NUMBER } kind;
+  struct user_type *child;
+} user_type;
+
+user_type *user_type_clone(user_type *type);
+void user_type_free(user_type *type);
+
+typedef struct user_value {
+  user_type *type;
+  union {
+    struct {
+      struct user_value **values;
+      int len;
+    } list;
+    sds string;
+    double number;
+  };
+} user_value;
+
+void user_value_free(user_value *value);
+
 typedef struct config {
   enum { CONFIG_NATIVE_MODULE = 1, CONFIG_DERIVED_MODULE } kind;
   sds path, process_name, description;
   union {
     struct {
       sds native_lib;
+      table arguments, values;
     } native;
+    struct {
+      sds base;
+      table values;
+    } derived;
   };
 } config;
 

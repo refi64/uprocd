@@ -35,6 +35,36 @@ static int readline(FILE *fp, sds *pline) {
   return 0;
 }
 
+user_type *user_type_clone(user_type *type) {
+  user_type *res = new(user_type);
+  res->kind = type->kind;
+  if (type->kind == TYPE_LIST) {
+    res->child = user_type_clone(type->child);
+  }
+  return res;
+}
+
+void user_type_free(user_type *type) {
+  if (type->kind == TYPE_LIST && type->child) {
+    user_type_free(type->child);
+  }
+  free(type);
+}
+
+void user_value_free(user_value *value) {
+  if (value->type) {
+    if (value->type->kind == TYPE_STRING) {
+      sdsfree(value->string);
+    } else if (value->type->kind == TYPE_LIST) {
+      for (int i = 0; i < value->list.len; i++) {
+        user_value_free(value->list.values[i]);
+      }
+    }
+  }
+
+  free(value);
+}
+
 config *config_parse(const char *path) {
   FILE *fp = fopen(path, "r");
   if (fp == NULL) {
@@ -80,6 +110,11 @@ config *config_parse(const char *path) {
 
         cfg->kind = isnative ? CONFIG_NATIVE_MODULE : CONFIG_DERIVED_MODULE;
         goto parse_end;
+      } else if (strcmp(cursect, "Arguments") == 0) {
+        if (cfg->kind != CONFIG_NATIVE_MODULE) {
+          PARSE_ERROR("Arguments can only be used with a NativeModule.");
+          goto parse_end;
+        }
       } else {
         PARSE_ERROR("Invalid section '%S'", cursect);
         goto parse_end;
@@ -100,23 +135,62 @@ config *config_parse(const char *path) {
         goto parse_end;
       }
 
-      if (strcmp(key, "ProcessName") == 0) {
-        cfg->process_name = sdsdup(value);
-        goto parse_end;
-      } else if (strcmp(key, "Description") == 0) {
-        cfg->description = sdsdup(value);
-        goto parse_end;
-      }
-
-      switch (cfg->kind) {
-      case CONFIG_NATIVE_MODULE:
-        if (strcmp(key, "NativeLib") == 0) {
-          cfg->native.native_lib = sdsdup(value);
+      if (strcmp(cursect, "NativeModule") == 0 ||
+          strcmp(cursect, "DerivedModule") == 0) {
+        if (strcmp(key, "ProcessName") == 0) {
+          cfg->process_name = sdsdup(value);
+          goto parse_end;
+        } else if (strcmp(key, "Description") == 0) {
+          cfg->description = sdsdup(value);
           goto parse_end;
         }
-        break;
-      case CONFIG_DERIVED_MODULE:
-        break;
+
+        switch (cfg->kind) {
+        case CONFIG_NATIVE_MODULE:
+          if (strcmp(key, "NativeLib") == 0) {
+            cfg->native.native_lib = sdsdup(value);
+            goto parse_end;
+          }
+          break;
+        case CONFIG_DERIVED_MODULE:
+          if (strcmp(key, "Base") == 0) {
+            cfg->derived.base = sdsdup(value);
+            goto parse_end;
+          } else {
+            table_add(&cfg->derived.values, key, sdsdup(value));
+          }
+        }
+      } else if (strcmp(cursect, "Arguments") == 0) {
+        user_type *type = new(user_type), *current = type;
+        size_t vlen = sdslen(value);
+        int islist = 0;
+
+        while (strncmp(value, "list ", 5) == 0) {
+          if (islist) {
+            PARSE_ERROR("Nested lists are not allowed");
+            user_type_free(type);
+            goto parse_end;
+          }
+          islist = 1;
+          sdsrange(value, 5, -1);
+
+          type->kind = TYPE_LIST;
+          type->child = new(user_type);
+          current = type->child;
+        }
+
+        if (strcmp(value, "string") == 0) {
+          current->kind = TYPE_STRING;
+        } else if (strcmp(value, "number") == 0) {
+          current->kind = TYPE_NUMBER;
+        } else {
+          PARSE_ERROR("Invalid type: '%S'", value);
+          user_type_free(type);
+          goto parse_end;
+        }
+
+        table_add(&cfg->native.arguments, key, type);
+        goto parse_end;
       }
 
       PARSE_ERROR("Invalid key '%S'", key);
@@ -128,9 +202,11 @@ config *config_parse(const char *path) {
     line = NULL;
     if (key) {
       sdsfree(key);
+      key = NULL;
     }
     if (value) {
       sdsfree(value);
+      value = NULL;
     }
     if (rc != 0) {
       break;
@@ -143,6 +219,10 @@ config *config_parse(const char *path) {
   }
   if (cursect) {
     sdsfree(cursect);
+  }
+
+  if (cfg->kind == CONFIG_DERIVED_MODULE && !cfg->derived.base) {
+    PARSE_ERROR("DerivedModule needs a Base.");
   }
 
   if (rc != 0) {
@@ -168,13 +248,30 @@ void config_free(config *cfg) {
     sdsfree(cfg->description);
   }
 
+  char *arg = NULL;
+
   switch (cfg->kind) {
   case CONFIG_NATIVE_MODULE:
     if (cfg->native.native_lib) {
       sdsfree(cfg->native.native_lib);
     }
+
+    user_type *type;
+    while ((arg = table_next(&cfg->native.arguments, arg, (void**)&type))) {
+      user_type_free(type);
+    }
+    table_free(&cfg->native.arguments);
     break;
   case CONFIG_DERIVED_MODULE:
+    if (cfg->derived.base) {
+      sdsfree(cfg->derived.base);
+    }
+
+    sds value;
+    while ((arg = table_next(&cfg->derived.values, arg, (void**)&value))) {
+      sdsfree(value);
+    }
+    table_free(&cfg->derived.values);
     break;
   }
 

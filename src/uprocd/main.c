@@ -89,6 +89,23 @@ config *load_config(const char *module) {
   return cfg;
 }
 
+config *resolve_derived_config(config *cfg) {
+  INFO("Resolving derived config...");
+
+  while (cfg->kind == CONFIG_DERIVED_MODULE) {
+    INFO("Locating parent %S.", cfg->derived.base);
+    config *base = load_config(cfg->derived.base);
+    if (base == NULL) {
+      config_free(cfg);
+      return NULL;
+    }
+    config_free(cfg);
+    cfg = base;
+  }
+
+  return cfg;
+}
+
 typedef struct dl_handle dl_handle;
 struct dl_handle {
   void *dl;
@@ -149,6 +166,13 @@ int main(int argc, char **argv) {
   config *cfg = load_config(module);
   if (cfg == NULL) {
     return 1;
+  }
+
+  if (cfg->kind == CONFIG_DERIVED_MODULE) {
+    cfg = resolve_derived_config(cfg);
+    if (cfg == NULL) {
+      return 1;
+    }
   }
 
   dl_handle handle;
