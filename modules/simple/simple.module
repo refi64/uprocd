@@ -7,4 +7,13 @@ NativeLib=simple
 ProcessName=simple
 
 [Arguments]
-Something=number
+String=string
+Number=number
+StringList=list string
+NumberList=list number
+
+[Defaults]
+String=simple
+Number=2
+StringList=string list
+NumberList=1 2 3

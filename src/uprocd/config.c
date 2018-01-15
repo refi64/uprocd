@@ -51,18 +51,57 @@ void user_type_free(user_type *type) {
   free(type);
 }
 
-void user_value_free(user_value *value) {
-  if (value->type) {
-    if (value->type->kind == TYPE_STRING) {
-      sdsfree(value->string);
-    } else if (value->type->kind == TYPE_LIST) {
-      for (int i = 0; i < value->list.len; i++) {
-        user_value_free(value->list.values[i]);
+user_value *user_value_parse(sds name, sds value, user_type *type) {
+  user_value *res = new(user_value);
+  char *ep;
+  sds *parts;
+
+  switch (type->kind) {
+  case TYPE_NONE: abort();
+  case TYPE_NUMBER:
+    res->number = strtod(value, &ep);
+    if (*ep) {
+      FAIL("Error parsing value of %S: Invalid number.", name);
+      free(res);
+      return NULL;
+    }
+    break;
+  case TYPE_STRING:
+    res->string = sdsdup(value);
+    break;
+  case TYPE_LIST:
+    parts = sdssplitlen(value, sdslen(value), " ", 1, &res->list.len);
+    res->list.items = newa(user_value*, res->list.len);
+    for (int i = 0; i < res->list.len; i++) {
+      user_value *child = user_value_parse(name, parts[i], type->child);
+      if (child == NULL) {
+        user_value_free(res);
+        return NULL;
+      }
+      res->list.items[i] = child;
+    }
+    sdsfreesplitres(parts, res->list.len);
+    break;
+  }
+
+  res->type = user_type_clone(type);
+  return res;
+}
+
+void user_value_free(user_value *usr) {
+  if (usr->type) {
+    if (usr->type->kind == TYPE_STRING) {
+      sdsfree(usr->string);
+    } else if (usr->type->kind == TYPE_LIST) {
+      for (int i = 0; i < usr->list.len; i++) {
+        if (usr->list.items[i]) {
+          user_value_free(usr->list.items[i]);
+        }
       }
     }
   }
 
-  free(value);
+  free(usr);
 }
 
 config *config_parse(const char *path) {
@@ -110,9 +149,10 @@ config *config_parse(const char *path) {
 
         cfg->kind = isnative ? CONFIG_NATIVE_MODULE : CONFIG_DERIVED_MODULE;
         goto parse_end;
-      } else if (strcmp(cursect, "Arguments") == 0) {
+      } else if (strcmp(cursect, "Arguments") == 0 ||
+                 strcmp(cursect, "Defaults") == 0) {
         if (cfg->kind != CONFIG_NATIVE_MODULE) {
-          PARSE_ERROR("Arguments can only be used with a NativeModule.");
+          PARSE_ERROR("%S can only be used with a NativeModule.", cursect);
           goto parse_end;
         }
       } else {
@@ -157,7 +197,8 @@ config *config_parse(const char *path) {
             cfg->derived.base = sdsdup(value);
             goto parse_end;
           } else {
-            table_add(&cfg->derived.values, key, sdsdup(value));
+            table_add(&cfg->derived.value_strings, key, sdsdup(value));
+            goto parse_end;
           }
         }
       } else if (strcmp(cursect, "Arguments") == 0) {
@@ -190,6 +231,21 @@ config *config_parse(const char *path) {
         }
 
         table_add(&cfg->native.arguments, key, type);
+        goto parse_end;
+      } else if (strcmp(cursect, "Defaults") == 0) {
+        user_type *type = table_get(&cfg->native.arguments, key);
+        if (type == NULL) {
+          PARSE_ERROR("Unknown key: '%S'", key);
+          goto parse_end;
+        }
+
+        user_value *usr = user_value_parse(key, value, type);
+        if (usr == NULL) {
+          rc = 1;
+          goto parse_end;
+        }
+
+        table_add(&cfg->native.values, key, usr);
         goto parse_end;
       }
 
@@ -237,6 +293,11 @@ config *config_parse(const char *path) {
   return cfg;
 }
 
+void config_move_out_values(config *cfg, table *values) {
+  *values = cfg->native.values;
+  table_init(&cfg->native.values);
+}
+
 void config_free(config *cfg) {
   if (cfg->path) {
     sdsfree(cfg->path);
@@ -261,6 +322,13 @@ void config_free(config *cfg) {
       user_type_free(type);
     }
     table_free(&cfg->native.arguments);
+
+    user_value *usr;
+    arg = NULL;
+    while ((arg = table_next(&cfg->native.values, arg, (void**)&usr))) {
+      user_value_free(usr);
+    }
+    table_free(&cfg->native.values);
     break;
   case CONFIG_DERIVED_MODULE:
     if (cfg->derived.base) {
@@ -268,10 +336,10 @@ void config_free(config *cfg) {
     }
 
     sds value;
-    while ((arg = table_next(&cfg->derived.values, arg, (void**)&value))) {
+    while ((arg = table_next(&cfg->derived.value_strings, arg, (void**)&value))) {
       sdsfree(value);
     }
-    table_free(&cfg->derived.values);
+    table_free(&cfg->derived.value_strings);
     break;
   }
 

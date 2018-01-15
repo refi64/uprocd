@@ -14,12 +14,21 @@
 
 extern char **environ;
 
+struct uprocd_config {
+  table *config;
+};
+
 struct uprocd_context {
   int argc;
   sds *argv, *env;
   sds cwd;
   int fds[3];
+  uprocd_config config;
 };
+
+UPROCD_EXPORT uprocd_config *uprocd_context_get_config(uprocd_context *ctx) {
+  return &ctx->config;
+}
 
 UPROCD_EXPORT void uprocd_context_get_args(uprocd_context *ctx, int *pargc,
                                            char ***pargv) {
@@ -74,6 +83,28 @@ UPROCD_EXPORT void uprocd_context_enter(uprocd_context *ctx) {
   dup2(ctx->fds[2], 2);
 
   setsid();
+}
+
+UPROCD_EXPORT int uprocd_config_list_size(uprocd_config *cfg, const char *key) {
+  return ((user_value*)table_get(cfg->config, key))->list.len;
+}
+
+UPROCD_EXPORT double uprocd_config_number(uprocd_config *cfg, const char *key) {
+  return ((user_value*)table_get(cfg->config, key))->number;
+}
+
+UPROCD_EXPORT double uprocd_config_number_at(uprocd_config *cfg, const char *list,
+                                             int index) {
+  return ((user_value*)table_get(cfg->config, list))->list.items[index]->number;
+}
+
+UPROCD_EXPORT const char *uprocd_config_string(uprocd_config *cfg, const char *key) {
+  return ((user_value*)table_get(cfg->config, key))->string;
+}
+
+UPROCD_EXPORT const char *uprocd_config_string_at(uprocd_config *cfg, const char *list,
+                                                  int index) {
+  return ((user_value*)table_get(cfg->config, list))->list.items[index]->string;
 }
 
 sds * convert_env_to_api_format(table *penv) {
@@ -166,6 +197,7 @@ int service_method_run(sd_bus_message *msg, void *data, sd_bus_error *buserr) {
   ctx->fds[0] = dup(fds[0]);
   ctx->fds[1] = dup(fds[1]);
   ctx->fds[2] = dup(fds[2]);
+  ctx->config.config = &global_run_data.config;
   global_run_data.upcoming_context = ctx;
 
   pid_t child = fork();

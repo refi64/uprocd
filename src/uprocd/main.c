@@ -92,18 +92,46 @@ config *load_config(const char *module) {
 config *resolve_derived_config(config *cfg) {
   INFO("Resolving derived config...");
 
-  while (cfg->kind == CONFIG_DERIVED_MODULE) {
-    INFO("Locating parent %S.", cfg->derived.base);
-    config *base = load_config(cfg->derived.base);
-    if (base == NULL) {
+  INFO("Locating parent %S.", cfg->derived.base);
+  config *base = load_config(cfg->derived.base);
+  if (base == NULL) {
+    config_free(cfg);
+    return NULL;
+  }
+  if (base->kind != CONFIG_NATIVE_MODULE) {
+    FAIL("A DerivedModule can only have a NativeModule as its base.");
+    config_free(cfg);
+    return NULL;
+  }
+
+  char *key = NULL;
+  user_type *type;
+  while ((key = table_next(&base->native.arguments, key, (void**)&type))) {
+    sds value = table_get(&cfg->derived.value_strings, key);
+    if (value == NULL) {
+      if (table_get(&base->native.values, key) == NULL) {
+        FAIL("Base module %S requires a value for %s.", cfg->derived.base, key);
+        config_free(cfg);
+        return NULL;
+      }
+
+      continue;
+    }
+
+    user_value *usr = user_value_parse(key, value, type);
+    if (usr == NULL) {
       config_free(cfg);
       return NULL;
     }
-    config_free(cfg);
-    cfg = base;
+
+    user_value *prev = table_swap(&base->native.values, key, usr);
+    if (prev != NULL) {
+      user_value_free(prev);
+    }
   }
 
-  return cfg;
+  config_free(cfg);
+  return base;
 }
 
 typedef struct dl_handle dl_handle;
@@ -184,6 +212,7 @@ int main(int argc, char **argv) {
   global_run_data.module = module;
   global_run_data.process_name = cfg->process_name ? sdsdup(cfg->process_name) : NULL;
   global_run_data.description = cfg->description ? sdsdup(cfg->description) : NULL;
+  config_move_out_values(cfg, &global_run_data.config);
   global_run_data.exit_handler = NULL;
   global_run_data.exit_handler_userdata = NULL;
   global_run_data.upcoming_context = NULL;

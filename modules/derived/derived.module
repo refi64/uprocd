@@ -4,3 +4,5 @@
 
 [DerivedModule]
 Base=simple
+String=simple
+NumberList=1 2 3

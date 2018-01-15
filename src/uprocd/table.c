@@ -26,6 +26,12 @@ void * table_get(table *tbl, const char *key) {
   }
 }
 
+void * table_swap(table *tbl, const char *key, void *value) {
+  void *orig = table_get(tbl, key);
+  table_add(tbl, key, value);
+  return orig;
+}
+
 int table_del(table *tbl, const char *key) {
   int rc;
   JSLD(rc, tbl->p, (const uint8_t*)key);

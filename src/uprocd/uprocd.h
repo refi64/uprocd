@@ -25,6 +25,7 @@ typedef struct {
 void table_init(table *tbl);
 void table_add(table *tbl, const char *key, void *value);
 void * table_get(table *tbl, const char *key);
+void * table_swap(table *tbl, const char *key, void *value);
 char * table_next(table *tbl, char *prev, void **value);
 void table_free(table *tbl);
 
@@ -40,7 +41,7 @@ typedef struct user_value {
   user_type *type;
   union {
     struct {
-      struct user_value **values;
+      struct user_value **items;
       int len;
     } list;
     sds string;
@@ -48,7 +49,8 @@ typedef struct user_value {
   };
 } user_value;
 
-void user_value_free(user_value *value);
+user_value *user_value_parse(sds name, sds value, user_type *type);
+void user_value_free(user_value *usr);
 
 typedef struct config {
   enum { CONFIG_NATIVE_MODULE = 1, CONFIG_DERIVED_MODULE } kind;
@@ -60,17 +62,19 @@ typedef struct config {
     } native;
     struct {
       sds base;
-      table values;
+      table value_strings;
     } derived;
   };
 } config;
 
 config *config_parse(const char *path);
+void config_move_out_values(config *cfg, table *values);
 void config_free(config *cfg);
 
 struct {
   char *module;
   sds process_name, description;
+  table config;
   jmp_buf return_to_main, return_to_loop;
   void *exit_handler, *exit_handler_userdata;
   void *upcoming_context;
