@@ -5,4 +5,8 @@
 [DerivedModule]
 Base=simple
 String=simple
+  stuff
+   is
+
+  awesome
 NumberList=1 2 3

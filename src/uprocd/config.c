@@ -5,6 +5,8 @@
 #include "common.h"
 #include "uprocd.h"
 
+#include <ctype.h>
+
 static int readline(FILE *fp, sds *pline) {
   sds result = sdsempty();
   *pline = NULL;
@@ -169,6 +171,37 @@ config *config_parse(const char *path) {
       key = sdsdup(line), value = sdsdup(line);
       sdsrange(key, 0, eq - line - 1);
       sdsrange(value, eq - line + 1, -1);
+
+      int indent = -1;
+      for (;;) {
+        char peek = fgetc(fp);
+        if (peek == '\n') {
+          continue;
+        }
+
+        ungetc(peek, fp);
+        if (peek != ' ') {
+          break;
+        }
+
+        sds nextline;
+        rc = readline(fp, &nextline);
+        if (rc != 0) {
+          break;
+        }
+
+        int current_indent = 0;
+        while (isspace(nextline[current_indent])) {
+          current_indent++;
+        }
+        if (indent == -1) {
+          indent = current_indent;
+        }
+
+        int min_indent = current_indent < indent ? current_indent : indent;
+        sdsrange(nextline, min_indent, -1);
+        value = sdscatfmt(value, "\n%S", nextline);
+      }
 
       if (!cfg->kind) {
         PARSE_ERROR("Key '%S' outside section", key);
