@@ -31,7 +31,7 @@ sds get_xdg_config_home() {
   return sdscat(sdsnew(home), "/.config");
 }
 
-config *load_config(const char *module) {
+config *load_config(const char *module, sds *module_dir) {
   sds xdg_config_home = get_xdg_config_home();
 
   static const char *search_paths[] = {
@@ -78,6 +78,11 @@ config *load_config(const char *module) {
     return NULL;
   }
 
+  if (module_dir) {
+    *module_dir = sdsdup(module_path);
+    sdsrange(*module_dir, 0, strrchr(*module_dir, '/') - *module_dir - 1);
+  }
+
   INFO("Found module at %S.", module_path);
   config *cfg = config_parse(module_path);
   sdsfree(module_path);
@@ -93,7 +98,7 @@ config *resolve_derived_config(config *cfg) {
   INFO("Resolving derived config...");
 
   INFO("Locating parent %S.", cfg->derived.base);
-  config *base = load_config(cfg->derived.base);
+  config *base = load_config(cfg->derived.base, NULL);
   if (base == NULL) {
     config_free(cfg);
     return NULL;
@@ -191,7 +196,8 @@ int main(int argc, char **argv) {
   char *module = argv[2];
   setproctitle("-uprocd:%s", module);
 
-  config *cfg = load_config(module);
+  sds module_dir;
+  config *cfg = load_config(module, &module_dir);
   if (cfg == NULL) {
     return 1;
   }
@@ -210,6 +216,7 @@ int main(int argc, char **argv) {
   }
 
   global_run_data.module = module;
+  global_run_data.module_dir = module_dir;
   global_run_data.process_name = cfg->process_name ? sdsdup(cfg->process_name) : NULL;
   global_run_data.description = cfg->description ? sdsdup(cfg->description) : NULL;
   config_move_out_values(cfg, &global_run_data.config);
@@ -225,6 +232,7 @@ int main(int argc, char **argv) {
     handle.entry();
   }
 
+  sdsfree(global_run_data.module_dir);
   sdsfree(global_run_data.process_name);
   sdsfree(global_run_data.description);
   return result;

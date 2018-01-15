@@ -7,10 +7,18 @@
 
 #define UPROCD_EXPORT __attribute__((visibility("default")))
 
-typedef struct uprocd_context uprocd_context;
-typedef struct uprocd_config uprocd_config;
+UPROCD_EXPORT const char * uprocd_module_directory();
+UPROCD_EXPORT char * uprocd_module_path(const char *path);
+UPROCD_EXPORT void uprocd_module_path_free(char *path);
 
-UPROCD_EXPORT uprocd_config* uprocd_context_get_config(uprocd_context *ctx);
+UPROCD_EXPORT int uprocd_config_list_size(const char *key);
+UPROCD_EXPORT double uprocd_config_number(const char *key);
+UPROCD_EXPORT double uprocd_config_number_at(const char *list, int index);
+UPROCD_EXPORT const char * uprocd_config_string(const char *key);
+UPROCD_EXPORT const char * uprocd_config_string_at(const char *list, int index);
+
+typedef struct uprocd_context uprocd_context;
+
 UPROCD_EXPORT void uprocd_context_get_args(uprocd_context *ctx, int *pargc,
                                            char ***pargv);
 UPROCD_EXPORT const char ** uprocd_context_get_env(uprocd_context *ctx);
@@ -25,13 +33,5 @@ UPROCD_EXPORT uprocd_context * uprocd_run();
 
 typedef void (*uprocd_module_entry_type)();
 UPROCD_EXPORT void uprocd_module_entry();
-
-UPROCD_EXPORT int uprocd_config_list_size(uprocd_config *cfg, const char *key);
-UPROCD_EXPORT double uprocd_config_number(uprocd_config *cfg, const char *key);
-UPROCD_EXPORT double uprocd_config_number_at(uprocd_config *cfg, const char *list,
-                                             int index);
-UPROCD_EXPORT const char* uprocd_config_string(uprocd_config *cfg, const char *key);
-UPROCD_EXPORT const char* uprocd_config_string_at(uprocd_config *cfg, const char *list,
-                                                  int index);
 
 #endif

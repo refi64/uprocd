@@ -21,7 +21,7 @@
 
 void * alloc(size_t sz);
 void * ralloc(void *p, size_t sz);
-#define newa(ty, n) ((ty*)alloc(sizeof(ty) * n))
+#define newa(ty, n) ((ty*)alloc(sizeof(ty) * (n)))
 #define new(ty) newa(ty, 1)
 
 void get_bus_params(const char *module, sds *pservice, sds *pobject);

@@ -73,6 +73,7 @@ void config_free(config *cfg);
 
 struct {
   char *module;
+  sds module_dir;
   sds process_name, description;
   table config;
   jmp_buf return_to_main, return_to_loop;

@@ -14,21 +14,50 @@
 
 extern char **environ;
 
-struct uprocd_config {
-  table *config;
-};
+UPROCD_EXPORT const char * uprocd_module_directory() {
+  return global_run_data.module_dir;
+}
+
+UPROCD_EXPORT char * uprocd_module_path(const char *path) {
+  return sdscatfmt(sdsempty(), "%S/%s", global_run_data.module_dir, path);
+}
+
+UPROCD_EXPORT void uprocd_module_path_free(char *path) {
+  sdsfree(path);
+}
+
+user_value *config_get(const char *key) {
+  return table_get(&global_run_data.config, key);
+}
+
+UPROCD_EXPORT int uprocd_config_list_size(const char *key) {
+  return config_get(key)->list.len;
+}
+
+UPROCD_EXPORT double uprocd_config_number(const char *key) {
+  return config_get(key)->number;
+}
+
+UPROCD_EXPORT double uprocd_config_number_at(const char *list,
+                                             int index) {
+  return config_get(list)->list.items[index]->number;
+}
+
+UPROCD_EXPORT const char *uprocd_config_string(const char *key) {
+  return config_get(key)->string;
+}
+
+UPROCD_EXPORT const char *uprocd_config_string_at(const char *list,
+                                                  int index) {
+  return config_get(list)->list.items[index]->string;
+}
 
 struct uprocd_context {
   int argc;
   sds *argv, *env;
   sds cwd;
   int fds[3];
-  uprocd_config config;
 };
-
-UPROCD_EXPORT uprocd_config *uprocd_context_get_config(uprocd_context *ctx) {
-  return &ctx->config;
-}
 
 UPROCD_EXPORT void uprocd_context_get_args(uprocd_context *ctx, int *pargc,
                                            char ***pargv) {
@@ -85,30 +114,8 @@ UPROCD_EXPORT void uprocd_context_enter(uprocd_context *ctx) {
   setsid();
 }
 
-UPROCD_EXPORT int uprocd_config_list_size(uprocd_config *cfg, const char *key) {
-  return ((user_value*)table_get(cfg->config, key))->list.len;
-}
-
-UPROCD_EXPORT double uprocd_config_number(uprocd_config *cfg, const char *key) {
-  return ((user_value*)table_get(cfg->config, key))->number;
-}
-
-UPROCD_EXPORT double uprocd_config_number_at(uprocd_config *cfg, const char *list,
-                                             int index) {
-  return ((user_value*)table_get(cfg->config, list))->list.items[index]->number;
-}
-
-UPROCD_EXPORT const char *uprocd_config_string(uprocd_config *cfg, const char *key) {
-  return ((user_value*)table_get(cfg->config, key))->string;
-}
-
-UPROCD_EXPORT const char *uprocd_config_string_at(uprocd_config *cfg, const char *list,
-                                                  int index) {
-  return ((user_value*)table_get(cfg->config, list))->list.items[index]->string;
-}
-
 sds * convert_env_to_api_format(table *penv) {
-  sds *entries = newa(sds, penv->sz), *current = entries;
+  sds *entries = newa(sds, penv->sz * 2 + 1), *current = entries;
   char *name = NULL, *value;
   while ((name = table_next(penv, name, (void**)&value))) {
     *(current++) = sdsnew(name);
@@ -120,6 +127,9 @@ sds * convert_env_to_api_format(table *penv) {
 }
 
 int service_method_run(sd_bus_message *msg, void *data, sd_bus_error *buserr) {
+  char *title = global_run_data.process_name ? global_run_data.process_name :
+                global_run_data.module;
+
   int rc;
   table env;
   table_init(&env);
@@ -153,8 +163,10 @@ int service_method_run(sd_bus_message *msg, void *data, sd_bus_error *buserr) {
     goto read_end;
   }
 
-  int argc = 0;
-  sds *argv = NULL;
+  int argc = 1;
+  sds *argv = new(sds);
+  argv[0] = sdsnew(title);
+
   char *arg;
   while ((rc = sd_bus_message_read(msg, "s", &arg)) > 0) {
     argc++;
@@ -197,7 +209,6 @@ int service_method_run(sd_bus_message *msg, void *data, sd_bus_error *buserr) {
   ctx->fds[0] = dup(fds[0]);
   ctx->fds[1] = dup(fds[1]);
   ctx->fds[2] = dup(fds[2]);
-  ctx->config.config = &global_run_data.config;
   global_run_data.upcoming_context = ctx;
 
   pid_t child = fork();
@@ -222,8 +233,6 @@ int service_method_run(sd_bus_message *msg, void *data, sd_bus_error *buserr) {
     close(wait_for_set_ptracer[0]);
     close(wait_for_set_ptracer[1]);
 
-    char *title = global_run_data.process_name ? global_run_data.process_name :
-                  global_run_data.module;
     return sd_bus_reply_method_return(msg, "xs", child, title);
   }
 }

@@ -1,12 +1,14 @@
 CC = clang
 
+#CFLAGS += -fsanitize=address
 CFLAGS += -fvisibility=hidden
 CFLAGS += -fdiagnostics-color
 CFLAGS += -g
 CFLAGS += -I. -Isrc/common
-CFLAGS += `pkg-config --cflags hiredis libsystemd`
+CFLAGS += `pkg-config --cflags hiredis libsystemd python3`
 
-LDFLAGS += `pkg-config --libs hiredis libsystemd`
+#LDFLAGS += -fsanitize=address
+LDFLAGS += `pkg-config --libs hiredis libsystemd python3`
 LDFLAGS += -ldl -lJudy
 
 !cc = |> ^ CC %f^ $(CC) $(CFLAGS) -c %f -o %o |>
@@ -14,12 +16,16 @@ LDFLAGS += -ldl -lJudy
 !linkso = |> ^ LINKSO %o^ $(CC) -shared %f -o %o $(LDFLAGS) |>
 !cp = |> ^ COPY %f^ cp %f %o |>
 
-: modules/simple/simple.module |> !cp |> build/modules/simple.module
+: modules/simple/simple.module |> !cp |> build/modules/%b
 : modules/simple/simple.c |> !cc |> build/modules.o/simple.o
 
-: modules/derived/derived.module |> !cp |> build/modules/derived.module
+: modules/derived/derived.module |> !cp |> build/modules/%b
 
-: build/modules.o/*.o |> !linkso |> build/modules/%B.so
+: modules/python/python.module |> !cp |> build/modules/%b
+: modules/python/_uprocd_modules.py |> !cp |> build/modules/%b
+: modules/python/python.c |> !cc |> build/modules.o/python.o
+
+: foreach build/modules.o/*.o |> !linkso |> build/modules/%B.so
 
 : foreach src/common/*.c |> !cc |> build/common-%B.o
 : foreach src/uprocd/*.c |> !cc |> build/uprocd-%B.o
