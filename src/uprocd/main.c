@@ -181,6 +181,10 @@ int load_dl_handle(const char *module, config *cfg, dl_handle *phandle) {
   return 1;
 }
 
+void interrupt_main(int sig) {
+  longjmp(global_run_data.return_to_main, sig + 128);
+}
+
 void clear_child(int sig) {
   waitpid(-1, NULL, WNOHANG);
 }
@@ -228,6 +232,7 @@ int main(int argc, char **argv) {
   int result;
   if ((result = setjmp(global_run_data.return_to_main)) == 0) {
     INFO("Entering uprocd_run...");
+    signal(SIGINT, interrupt_main);
     signal(SIGCHLD, clear_child);
     handle.entry();
   }
