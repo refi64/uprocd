@@ -55,13 +55,14 @@ int wait_for_process() {
     return 1;
   }
 
-  siginfo_t sig;
-  if (waitid(P_PID, target_pid, &sig, WEXITED) == -1) {
-    FAIL("Error waiting for %I: %s", target_pid, strerror(errno));
-    return 1;
-  }
-
   for (;;) {
+    siginfo_t sig;
+
+    if (waitid(P_PID, target_pid, &sig, WEXITED) == -1) {
+      FAIL("Error waiting for %I: %s", target_pid, strerror(errno));
+      return 1;
+    }
+
     if (sig.si_code == CLD_EXITED) {
       return sig.si_status;
     } else if (sig.si_code == CLD_KILLED || sig.si_code == CLD_DUMPED) {
@@ -76,10 +77,8 @@ int wait_for_process() {
         return status >> 8;
       } else {
         if (ptrace(PTRACE_CONT, target_pid, NULL, (void*)(long)sig.si_status) == -1) {
-          /* puts("Failed"); */
           return sig.si_status + 128;
         } else {
-          /* puts("This one worked"); */
           continue;
         }
       }
@@ -221,6 +220,9 @@ int run(char *module, int argc, char **argv) {
     return 1;
   } else {
     for (int sig = 0; sig < 31; sig++) {
+      if (sig == SIGCHLD) {
+        continue;
+      }
       signal(sig, forward_signal);
     }
 
