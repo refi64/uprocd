@@ -6,5 +6,8 @@
 Base=python
 Preload=import IPython
 Run=
+  from IPython.terminal.interactiveshell import TerminalInteractiveShell
   from IPython import start_ipython
+
+  TerminalInteractiveShell.simple_prompt = False
   sys.exit(start_ipython())
