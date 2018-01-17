@@ -1,0 +1,123 @@
+#!/usr/bin/env perl
+
+use Getopt::Long;
+use Pod::Usage;
+
+sub which {
+  my $prog = shift;
+  return undef if !defined($prog);
+  return -X $prog && $prog if index($prog, '/') != -1;
+  for my $dir (split /:/, $ENV{PATH}) {
+    return $prog if -X "$dir/$prog";
+  }
+  return undef;
+}
+
+sub error {
+  my $msg = shift;
+  print "$msg\n";
+  exit 1;
+}
+
+sub fail {
+  my $msg = shift;
+  print "failed\n";
+  error $msg;
+}
+
+my $cflags = $ENV{CFLAGS} || '';
+my $ldflags = $ENV{LDFLAGS} || '';
+
+my $help = 0;
+my $mode = 'debug';
+my $python = 'auto';
+
+GetOptions('help|h' => \$help, 'mode|m=s' => \$mode, 'python=s' => \$python);
+pod2usage(1) if $help;
+
+error "Invalid build mode: $mode." if $mode !~ m/debug-asan|debug|release/;
+
+print "*********************************************\n";
+print "********** uprocd configure script **********\n";
+print "*********************************************\n";
+print "\n";
+
+print 'Finding C compiler... ';
+my $cc = which($ENV{CC}) || which('clang') || which('gcc') || which('cc');
+fail 'Failed to locate C compiler.' if !defined($cc);
+print "$cc\n";
+
+print 'Finding libsystemd... ';
+my $systemd_cflags = `pkg-config --cflags libsystemd 2>/dev/null`;
+my $systemd_ldflags = `pkg-config --libs libsystemd 2>/dev/null`;
+fail 'Failed to detect libsystemd.' if length($systemd_cflags) == 0 || length($systemd_ldflags) == 0;
+print "ok\n";
+
+$cflags .= $systemd_cflags;
+$ldflags .= $systemd_ldflags;
+
+if ($python eq 'auto') {
+  print 'Checking for python3-config... ';
+  $python = defined(which($ENV{PYTHON_CONFIG}) || which('python3-config')) ? 'yes' : 'no';
+  print "$python\n";
+
+  if ($python eq 'yes') {
+    $cflags .= `python3-config --cflags`;
+    $ldflags .= `python3-config --libs`;
+  }
+}
+
+if ($mode eq 'debug') {
+  $cflags .= ' -g ';
+} elsif ($mode eq 'release') {
+  $cflags .= ' -O2 ';
+} elsif ($mode eq 'debug-asan') {
+  $cflags .= ' -fsanitize=address -g ';
+}
+
+$cflags =~ s/\s+/ /g;
+$cflags =~ s/^\s+|\s+$//g;
+$ldflags =~ s/\s+/ /g;
+$ldflags =~ s/^\s+|\s+$//g;
+
+print "Writing tup.config... ";
+
+open my $fh, '>tup.config' or error 'Error opening tup.config for writing.';
+
+print $fh "CONFIG_CC=$cc\n";
+print $fh "CONFIG_CFLAGS=$cflags\n";
+print $fh "CONFIG_LDFLAGS=$ldflags\n";
+print $fh "CONFIG_MODE=$mode\n";
+
+print $fh "CONFIG_PYTHON=$python\n";
+
+close $fh;
+
+print "done\n";
+
+print "\n";
+print "***************************************\n";
+print "********** Configure results **********\n";
+print "***************************************\n";
+print "\n";
+print "Build mode: $mode\n";
+print "C compiler: $cc\n";
+print "C compiler flags: $cflags\n";
+print "C compiler flags: $ldflags\n";
+print "\n";
+print "===================\n";
+print "===== Modules =====\n";
+print "===================\n";
+print "\n";
+print "Python module: $python\n";
+print "\n";
+print "Run 'tup' to build.\n";
+print "\n";
+
+__END__
+
+=head1 SYNOPSIS
+
+./configure [--help|-h] [--mode,-m=debug-asan|debug|release] [--python=yes|no|auto]
+
+=cut

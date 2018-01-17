@@ -1,2 +1,3 @@
 build/
 .tup/
+tup.config

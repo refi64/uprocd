@@ -236,7 +236,6 @@ config *config_parse(const char *path) {
         }
       } else if (strcmp(cursect, "Arguments") == 0) {
         user_type *type = new(user_type), *current = type;
-        size_t vlen = sdslen(value);
         int islist = 0;
 
         while (strncmp(value, "list ", 5) == 0) {
