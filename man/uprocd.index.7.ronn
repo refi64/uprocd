@@ -4,7 +4,7 @@
 
 uprocd(7) - Guide on managing uprocd modules with systemd
 
-uprocctl(1) - Run a command through uprocd
+uprocctl(1) - Query or run uprocd modules
 
 ## DEVELOPING MODULES
 

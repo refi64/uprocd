@@ -82,7 +82,7 @@ config *config_parse(const char *path) {
 
         cfg->kind = isnative ? CONFIG_NATIVE_MODULE : CONFIG_DERIVED_MODULE;
         goto parse_end;
-      } else if (strcmp(cursect, "Arguments") == 0 ||
+      } else if (strcmp(cursect, "Properties") == 0 ||
                  strcmp(cursect, "Defaults") == 0) {
         if (cfg->kind != CONFIG_NATIVE_MODULE) {
           PARSE_ERROR("%S can only be used with a NativeModule.", cursect);
@@ -165,7 +165,7 @@ config *config_parse(const char *path) {
             goto parse_end;
           }
         }
-      } else if (strcmp(cursect, "Arguments") == 0) {
+      } else if (strcmp(cursect, "Properties") == 0) {
         user_type *type = new(user_type), *current = type;
         int islist = 0;
 
@@ -193,10 +193,10 @@ config *config_parse(const char *path) {
           goto parse_end;
         }
 
-        table_add(&cfg->native.arguments, key, type);
+        table_add(&cfg->native.props, key, type);
         goto parse_end;
       } else if (strcmp(cursect, "Defaults") == 0) {
-        user_type *type = table_get(&cfg->native.arguments, key);
+        user_type *type = table_get(&cfg->native.props, key);
         if (type == NULL) {
           PARSE_ERROR("Unknown key: '%S'", key);
           goto parse_end;

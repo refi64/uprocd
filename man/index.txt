@@ -3,3 +3,6 @@ uprocd(7) uprocd.7.ronn
 
 uprocd.module(5) uprocd.module.5.ronn
 uprocd.h(3) uprocd.h.3.ronn
+
+systemctl(1) https://www.freedesktop.org/software/systemd/man/systemctl.html
+journalctl(1) https://www.freedesktop.org/software/systemd/man/journalctl.html

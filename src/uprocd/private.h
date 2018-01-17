@@ -58,7 +58,7 @@ typedef struct config {
   union {
     struct {
       sds native_lib;
-      table arguments, values;
+      table props, values;
     } native;
     struct {
       sds base;

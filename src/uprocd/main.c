@@ -113,7 +113,7 @@ config *resolve_derived_config(config *cfg) {
 
   char *key = NULL;
   user_type *type;
-  while ((key = table_next(&base->native.arguments, key, (void**)&type))) {
+  while ((key = table_next(&base->native.props, key, (void**)&type))) {
     sds value = table_get(&cfg->derived.value_strings, key);
     if (value == NULL) {
       if (table_get(&base->native.values, key) == NULL) {

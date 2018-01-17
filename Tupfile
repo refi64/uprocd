@@ -39,4 +39,5 @@ endif
 ifdef RONN
   : man/uprocd.index.7.ronn |> !man |> build/man/uprocd.index.7 | build/man/uprocd.index.7.html
   : man/uprocd.7.ronn |> !man |> build/man/uprocd.7 | build/man/uprocd.7.html
+  : man/uprocctl.1.ronn |> !man |> build/man/uprocctl.1 | build/man/uprocctl.1.html
 endif

@@ -99,10 +99,10 @@ void config_free(config *cfg) {
     }
 
     user_type *type;
-    while ((arg = table_next(&cfg->native.arguments, arg, (void**)&type))) {
+    while ((arg = table_next(&cfg->native.props, arg, (void**)&type))) {
       user_type_free(type);
     }
-    table_free(&cfg->native.arguments);
+    table_free(&cfg->native.props);
 
     user_value *usr;
     arg = NULL;

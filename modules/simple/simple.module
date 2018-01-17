@@ -6,7 +6,7 @@
 NativeLib=simple
 ProcessName=simple
 
-[Arguments]
+[Properties]
 String=string
 Number=number
 StringList=list string

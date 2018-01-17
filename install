@@ -40,6 +40,11 @@ inst exec build/uprocd "$prefix/share/uprocd/bin"
 
 inst data systemd/uprocd@.service "$prefix/lib/systemd/user"
 
+for man in build/man/*.?; do
+  section=${man##*.}
+  inst data $man "$prefix/share/man/man$section"
+done
+
 if grep -q CONFIG_PYTHON=yes tup.config; then
   inst exec build/modules/python.so "$prefix/share/uprocd/modules"
   inst data build/modules/python.module "$prefix/share/uprocd/modules"
