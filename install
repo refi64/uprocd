@@ -28,6 +28,11 @@ inst() {
   install -Dm "$mode" "$file" "$dest"
 }
 
+hasdocs() {
+  grep -q CONFIG_RONN= tup.config
+  return $?
+}
+
 set -e
 
 [[ "$1" == "-h" || "$1" == "--help" ]] && usage 0 ||:
@@ -40,11 +45,11 @@ inst exec build/uprocd "$prefix/share/uprocd/bin"
 
 inst data systemd/uprocd@.service "$prefix/lib/systemd/user"
 
-for man in build/man/*.?; do
+hasdocs && for man in build/man/*.?; do
   [ $man == python.module.7 ] && continue
   section=${man##*.}
   inst data $man "$prefix/share/man/man$section"
-done
+done ||:
 
 if grep -q CONFIG_PYTHON=yes tup.config; then
   inst exec build/modules/python.so "$prefix/share/uprocd/modules"
@@ -52,5 +57,5 @@ if grep -q CONFIG_PYTHON=yes tup.config; then
   inst data build/modules/ipython.module "$prefix/share/uprocd/modules"
   inst data build/modules/_uprocd_modules.py "$prefix/share/uprocd/modules"
 
-  inst data build/man/python.module.7 "$prefix/share/man/man7"
+  hasdocs && inst data build/man/python.module.7 "$prefix/share/man/man7" ||:
 fi
