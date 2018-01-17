@@ -11,6 +11,7 @@ UPROCD_EXPORT const char * uprocd_module_directory();
 UPROCD_EXPORT char * uprocd_module_path(const char *path);
 UPROCD_EXPORT void uprocd_module_path_free(char *path);
 
+UPROCD_EXPORT int uprocd_config_present(const char *key);
 UPROCD_EXPORT int uprocd_config_list_size(const char *key);
 UPROCD_EXPORT double uprocd_config_number(const char *key);
 UPROCD_EXPORT double uprocd_config_number_at(const char *list, int index);

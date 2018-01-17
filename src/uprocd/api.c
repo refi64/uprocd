@@ -26,30 +26,43 @@ UPROCD_EXPORT void uprocd_module_path_free(char *path) {
   sdsfree(path);
 }
 
-user_value *config_get(const char *key) {
+static user_value *config_get(const char *key) {
   return table_get(&global_run_data.config, key);
 }
 
+static int is_index_valid(user_value *usr, int index) {
+  return index > 0 && index < usr->list.len;
+}
+
+UPROCD_EXPORT int uprocd_config_present(const char *key) {
+  return config_get(key) != NULL;
+}
+
 UPROCD_EXPORT int uprocd_config_list_size(const char *key) {
-  return config_get(key)->list.len;
+  user_value *usr = config_get(key);
+  return usr ? usr->list.len : -1;
 }
 
 UPROCD_EXPORT double uprocd_config_number(const char *key) {
-  return config_get(key)->number;
+  user_value *usr = config_get(key);
+  return usr ? usr->number : 0;
 }
 
 UPROCD_EXPORT double uprocd_config_number_at(const char *list,
                                              int index) {
-  return config_get(list)->list.items[index]->number;
+  user_value *usr = config_get(list);
+  return usr && is_index_valid(usr, index) ? usr->list.items[index]->number : 0;
 }
 
 UPROCD_EXPORT const char *uprocd_config_string(const char *key) {
-  return config_get(key)->string;
+  user_value *usr = config_get(key);
+  return usr ? usr->string : NULL;
 }
 
 UPROCD_EXPORT const char *uprocd_config_string_at(const char *list,
                                                   int index) {
-  return config_get(list)->list.items[index]->string;
+  user_value *usr = config_get(list);
+  return usr && is_index_valid(usr, index) ? usr->list.items[index]->string : NULL;
 }
 
 struct uprocd_context {
