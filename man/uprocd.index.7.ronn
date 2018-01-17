@@ -1,5 +1,10 @@
 # uprocd.index(7) -- uprocd documentation index
 
+## RECOMMENDATIONS
+
+If you're just starting out, read `uprocd`(7) and `uprocctl`(1), which should send you`
+well on your way.
+
 ## BASIC USAGE
 
 uprocd(7) - Guide on managing uprocd modules with systemd
@@ -8,6 +13,6 @@ uprocctl(1) - Query or run uprocd modules
 
 ## DEVELOPING MODULES
 
-uprocd.module(5) - The uprocd module configuration files
+uprocd.module(5) - uprocd module configuration format
 
-uprocd.h(3) - The uprocd API header
+uprocd.h(3) - uprocd native module API index

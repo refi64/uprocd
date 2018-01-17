@@ -1,4 +1,4 @@
-# uprocd_module_path(3) -- Retrieve the path to a file next to the current uprocd module
+# uprocd_module_path_free(3) -- Free a uprocd_module_path return value
 
 ## SYNOPSIS
 

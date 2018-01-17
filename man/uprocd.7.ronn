@@ -77,4 +77,4 @@ After this, the native module will run the desired program.
 
 ## SEE ALSO
 
-uprocd.index(7), uprocctl(1), uprocd.modules(5), systemctl(1), journalctl(1)
+uprocd.index(7), uprocctl(1), uprocd.module(5), systemctl(1), journalctl(1)

@@ -1,4 +1,4 @@
-# uprocd.module(5) -- uprocd module syntax
+# uprocd.module(5) -- uprocd module file format
 
 ## SYNOPSIS
 

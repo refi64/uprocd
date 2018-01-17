@@ -3,6 +3,7 @@
 ## SYNOPSIS
 
 `uprocctl` [-h] status [MODULE]
+
 `uprocctl` [-h] run [MODULE] [ARGS...]
 
 ## DESCRIPTION
