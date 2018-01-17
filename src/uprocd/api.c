@@ -126,6 +126,14 @@ sds * convert_env_to_api_format(table *penv) {
   return entries;
 }
 
+int service_method_status(sd_bus_message *msg, void *data, sd_bus_error *buserr) {
+  char *name = global_run_data.module;
+  char *description = global_run_data.description ? global_run_data.description :
+                      "<none>";
+
+  return sd_bus_reply_method_return(msg, "ss", name, description);
+}
+
 int service_method_run(sd_bus_message *msg, void *data, sd_bus_error *buserr) {
   char *title = global_run_data.process_name ? global_run_data.process_name :
                 global_run_data.module;
@@ -239,7 +247,12 @@ int service_method_run(sd_bus_message *msg, void *data, sd_bus_error *buserr) {
 
 static const sd_bus_vtable service_vtable[] = {
   SD_BUS_VTABLE_START(0),
-  SD_BUS_METHOD("Run", UPROCD_DBUS_RUN_ARGUMENTS, UPROCD_DBUS_RUN_RETURN,
+  // Status() -> String name, String description
+  SD_BUS_METHOD("Status", "", "ss", service_method_status,
+                SD_BUS_VTABLE_UNPRIVILEGED),
+  // Run(Array<DictEntry<String>> env, Array<String> argv, String cwd,
+  //     Tuple<Fd, Fd, Fd> ttys, Int64 uprocctl_pid) -> Int64 pid, String name
+  SD_BUS_METHOD("Run", "a{ss}ass(hhh)x", "xs",
                 service_method_run, SD_BUS_VTABLE_UNPRIVILEGED),
   SD_BUS_VTABLE_END
 };

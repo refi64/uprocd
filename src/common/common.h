@@ -14,11 +14,6 @@
 
 #include <sds.h>
 
-// Run(Array<DictEntry<String>> env, Array<String> argv, String cwd,
-//     Tuple<Fd, Fd, Fd> ttys, Int64 uprocctl_pid) -> Int64 pid, String name
-#define UPROCD_DBUS_RUN_ARGUMENTS "a{ss}ass(hhh)x"
-#define UPROCD_DBUS_RUN_RETURN "xs"
-
 void * alloc(size_t sz);
 void * ralloc(void *p, size_t sz);
 #define newa(ty, n) ((ty*)alloc(sizeof(ty) * (n)))

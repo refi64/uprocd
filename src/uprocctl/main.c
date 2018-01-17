@@ -15,6 +15,7 @@ extern char **environ;
 char *prog;
 int64_t target_pid = -1;
 
+#define STATUS_USAGE "status [-h] module"
 #define RUN_USAGE "run [-h] module [args...]"
 
 void _fail(sds message) {
@@ -29,6 +30,10 @@ void usage() {
   printf("       %s " RUN_USAGE "\n", prog);
 }
 
+void status_usage() {
+  printf("usage: %s " STATUS_USAGE "\n", prog);
+}
+
 void run_usage() {
   printf("usage: %s " RUN_USAGE "\n", prog);
 }
@@ -41,12 +46,73 @@ void help() {
   puts("  run         Run a command through a uprocd module.");
 }
 
+void status_help() {
+  puts("uprocctl status shows the status of the given uprocd module.");
+  puts("");
+  puts("  -h       Show this screen.");
+  puts("  module   The uprocd module to retrieve information for.");
+}
+
 void run_help() {
   puts("uprocctl run allows you to spawn commands via the uprocd modules.");
   puts("");
   puts("  -h          Show this screen.");
   puts("  module      The uprocd module to run.");
   puts("  [args...]   Command line arguments to pass to the module.");
+}
+
+int status(const char *module) {
+  sd_bus *bus = NULL;
+  sd_bus_message *msg = NULL, *reply = NULL;
+  sd_bus_error err = SD_BUS_ERROR_NULL;
+  int rc;
+
+  rc = sd_bus_open_user(&bus);
+  if (rc < 0) {
+    FAIL("sd_bus_open_user failed: %s", strerror(-rc));
+    goto end;
+  }
+
+  sds service, object;
+  get_bus_params(module, &service, &object);
+
+  rc = sd_bus_message_new_method_call(bus, &msg, service, object, service, "Status");
+  if (rc < 0) {
+    FAIL("sd_bus_message_new_method_call failed: %s", strerror(-rc));
+    goto end;
+  }
+
+  rc = sd_bus_call(bus, msg, 0, &err, &reply);
+  if (rc < 0) {
+    FAIL("sd_bus_call failed: %s", err.message);
+    FAIL("Are you sure the uprocd module has been started?");
+    goto end;
+  }
+
+  char *name, *description;
+  rc = sd_bus_message_read(reply, "ss", &name, &description);
+  if (rc < 0) {
+    FAIL("uprocd process bus failed to return status information.");
+    goto end;
+  }
+
+  printf("Name:          %s\n", name);
+  printf("Description:   %s\n", description);
+
+  end:
+  sd_bus_error_free(&err);
+  if (msg) {
+    sd_bus_message_unref(msg);
+  }
+  if (bus) {
+    sd_bus_unref(bus);
+  }
+
+  if (rc < 0) {
+    return 1;
+  } else {
+    return 0;
+  }
 }
 
 int wait_for_process() {
@@ -245,6 +311,19 @@ int main(int argc, char **argv) {
     putchar('\n');
     help();
     return 0;
+  } else if (strcmp(argv[1], "status") == 0) {
+    if (argc < 3) {
+      FAIL("status requires an argument.");
+      status_usage();
+      return 1;
+    } else if (strcmp(argv[2], "-h") == 0) {
+      status_usage();
+      putchar('\n');
+      status_help();
+      return 0;
+    } else {
+      return status(argv[2]);
+    }
   } else if (strcmp(argv[1], "run") == 0) {
     if (argc < 3) {
       FAIL("run requires an argument.");
