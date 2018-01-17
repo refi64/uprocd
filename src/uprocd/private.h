@@ -71,6 +71,13 @@ config *config_parse(const char *path);
 void config_move_out_values(config *cfg, table *values);
 void config_free(config *cfg);
 
+int prepare_context_and_fork(int argc, char **argv, table *env, char *cwd, int *fds,
+                             pid_t pid);
+typedef struct bus_data bus_data;
+bus_data * bus_new();
+int bus_pump(bus_data *data);
+void bus_free(bus_data *data);
+
 struct {
   char *module;
   sds module_dir;
