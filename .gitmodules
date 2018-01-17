@@ -1,6 +1,3 @@
 [submodule "sds"]
-	path = deps/sds
+	path = sds
 	url = https://github.com/antirez/sds.git
-[submodule "deps/b64.c"]
-	path = deps/b64.c
-	url = https://github.com/littlstar/b64.c.git

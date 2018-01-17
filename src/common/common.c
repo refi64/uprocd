@@ -3,7 +3,6 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 #include "common.h"
-#include "b64.h"
 
 #include <sys/prctl.h>
 
@@ -27,16 +26,8 @@ void * ralloc(void *p, size_t sz) {
 }
 
 void get_bus_params(const char *module, sds *pservice, sds *pobject) {
-  char *encoded = b64_encode((void*)module, strlen(module));
-  size_t len = strlen(encoded);
-  while (encoded[len - 1] == '=') {
-    encoded[--len] = '0';
-  }
-
-  *pservice = sdscat(sdsnew("com.refi64.uprocd.modules."), encoded);
-  *pobject = sdscat(sdsnew("/com/refi64/uprocd/modules/"), encoded);
-
-  free(encoded);
+  *pservice = sdscat(sdsnew("com.refi64.uprocd.modules."), module);
+  *pobject = sdscat(sdsnew("/com/refi64/uprocd/modules/"), module);
 }
 
 static char **g_argv;
