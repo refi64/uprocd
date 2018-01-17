@@ -1,0 +1,48 @@
+#!/bin/bash
+
+usage() {
+  cat <<EOF
+./install [--help|-h] [<PREFIX=/usr>]
+
+Installs uprocd to <PREFIX> (default: /usr). This will install:
+
+- Command-line binaries to <PREFIX>/bin.
+- Internal binaries to <PREFIX>/share/uprocd/bin.
+- Default modules to <PREFIX>/share/uprocd/modules.
+EOF
+
+  exit $1
+}
+
+inst() {
+  file="$2"
+  dest="$3/`basename $2`"
+
+  case "$1" in
+  data) mode=644 ;;
+  exec) mode=755 ;;
+  *) echo "Invalid mode: $1"; exit 1 ;;
+  esac
+
+  echo "- $file -> $dest ($mode)"
+  install -Dm "$mode" "$file" "$dest"
+}
+
+set -e
+
+[[ "$1" == "-h" || "$1" == "--help" ]] && usage 0 ||:
+[[ "$1" == -* ]] && usage 1 ||:
+
+prefix="${1:-/usr}"
+
+inst exec build/uprocctl "$prefix/bin"
+inst exec build/uprocd "$prefix/share/uprocd/bin"
+
+inst data systemd/uprocd@.service "$prefix/lib/systemd/user"
+
+if grep -q CONFIG_PYTHON=yes tup.config; then
+  inst exec build/modules/python.so "$prefix/share/uprocd/modules"
+  inst data build/modules/python.module "$prefix/share/uprocd/modules"
+  inst data build/modules/ipython.module "$prefix/share/uprocd/modules"
+  inst data build/modules/_uprocd_modules.py "$prefix/share/uprocd/modules"
+fi
