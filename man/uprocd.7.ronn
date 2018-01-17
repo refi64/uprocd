@@ -60,6 +60,21 @@ To view the full, non-truncated logs, use `journalctl`(1):
 $ journalctl -b --user-unit uprocd@module-name
 ```
 
+## WORKINGS
+
+It is recommended you read this section if you plan on creating uprocd modules!
+
+When you start a uprocd service via systemd, a `uprocd` daemon is run for the module.
+Every module has its own daemon. The module will immediately perform any initialization
+steps, followed by relinquishing control back to the daemon. When the user requests for
+a program to be run via `uprocctl`(1), the daemon will fork, and the forked process
+will give a "context" back to the module.
+
+The context object contains the environment of and arguments passed to `uprocctl`(1).
+When the native module "enters" the context, its environment will be updated to match
+that of the `uprocctl`(1) caller, and it will be attached to the caller's terminal.
+After this, the native module will run the desired program.
+
 ## SEE ALSO
 
 uprocd.index(7), uprocctl(1), uprocd.modules(5), systemctl(1), journalctl(1)

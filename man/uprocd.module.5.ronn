@@ -37,9 +37,9 @@ NormalKey=Value
 
 There are two types of modules: native modules and derived modules.
 
-Native modules consist of a .module file and shared object library that performs the
-preloading tasks. These modules can specify properties that can be passed to them from
-derived modules.
+Native modules consist of a .module file and shared object library (ending in .so) that
+contains a symbol `uprocd_module_entry`(3) that runs the module code. These modules can
+specify properties that can be passed to them from derived modules.
 
 Derived modules are extensions of native modules. These consist of only a .module file,
 and the file will give values to the properties that the native module requires.
@@ -133,4 +133,4 @@ LuckyNames=Noctis Luna
 
 ## SEE ALSO
 
-uprocd.index(7), uprocd.h(3), uprocd(5)
+uprocd.index(7), uprocd.h(3), uprocd(7)
