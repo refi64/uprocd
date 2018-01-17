@@ -1,7 +1,7 @@
 LOCAL_CFLAGS += -fvisibility=hidden
 LOCAL_CFLAGS += -fdiagnostics-color
 LOCAL_CFLAGS += -Wno-strict-prototypes -Wno-sign-compare
-LOCAL_CFLAGS += -I. -Isrc/common -Isds
+LOCAL_CFLAGS += -Iapi -Isrc/common -Isds
 
 LOCAL_LDFLAGS += -ldl -lJudy -Wl,--export-dynamic
 
