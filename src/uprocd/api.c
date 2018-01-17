@@ -166,6 +166,8 @@ int prepare_context_and_fork(int argc, char **argv, table *env, char *cwd, int *
   } else if (child == 0) {
     prctl(PR_SET_PTRACER, pid, 0, 0);
     prctl(PR_SET_PDEATHSIG, SIGKILL, 0, 0);
+    ioctl(0, TIOCSCTTY, 1);
+
     write(wait_for_set_ptracer[1], "", 1);
     close(wait_for_set_ptracer[0]);
     close(wait_for_set_ptracer[1]);
@@ -174,6 +176,11 @@ int prepare_context_and_fork(int argc, char **argv, table *env, char *cwd, int *
 
     return 0;
   } else {
+    char byte;
+    read(wait_for_set_ptracer[0], &byte, 1);
+    close(wait_for_set_ptracer[0]);
+    close(wait_for_set_ptracer[1]);
+
     return child;
   }
 }
