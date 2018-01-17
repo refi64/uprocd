@@ -6,6 +6,48 @@
 
 #include <Python.h>
 
+void set_environment(uprocd_context *ctx) {
+  PyObject *osmod = NULL, *environ = NULL;
+
+  osmod = PyImport_ImportModule("os");
+  if (osmod == NULL) {
+    PyErr_Print();
+    goto end;
+  }
+
+  environ = PyObject_GetAttrString(osmod, "environ");
+  if (environ == NULL) {
+    PyErr_Print();
+    goto end;
+  }
+
+  PyObject *clear_result = PyObject_CallMethod(environ, "clear", NULL);
+  if (clear_result == NULL) {
+    PyErr_Print();
+    goto end;
+  }
+  Py_DECREF(clear_result);
+
+  for (const char **env = uprocd_context_get_env(ctx); *env != NULL; env += 2) {
+    PyObject *key = PyUnicode_FromString(env[0]),
+             *value = PyUnicode_FromString(env[1]);
+    int rc = PyObject_SetItem(environ, key, value);
+    Py_DECREF(key);
+    Py_DECREF(value);
+    if (rc == -1) {
+      PyErr_Print();
+    }
+  }
+
+  end:
+  if (environ) {
+    Py_DECREF(environ);
+  }
+  if (osmod) {
+    Py_DECREF(osmod);
+  }
+}
+
 UPROCD_EXPORT void uprocd_module_entry() {
   Py_SetProgramName(L"python");
   Py_Initialize();
@@ -26,9 +68,12 @@ UPROCD_EXPORT void uprocd_module_entry() {
   uprocd_context *ctx = uprocd_run();
   uprocd_context_enter(ctx);
 
+  set_environment(ctx);
+
   int argc, has_run_offset = 0;
   char **argv;
   uprocd_context_get_args(ctx, &argc, &argv);
+
 
   const char *run = uprocd_config_string("Run");
   if (strlen(run) != 0) {
