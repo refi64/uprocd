@@ -1,7 +1,7 @@
 LOCAL_CFLAGS += -fvisibility=hidden
 LOCAL_CFLAGS += -fdiagnostics-color
 LOCAL_CFLAGS += -Wno-strict-prototypes -Wno-sign-compare
-LOCAL_CFLAGS += -Iapi -Isrc/common -Isds
+LOCAL_CFLAGS += -Iapi -Isrc/common -Ideps/sds -Ideps/b64.c
 
 LOCAL_LDFLAGS += -ldl -lJudy -Wl,--export-dynamic
 
@@ -12,14 +12,14 @@ SDS = build/sds.o
 !linkso = | $(SDS) |> ^ LINKSO %o^ @(CC) $(SDS) -shared %f -o %o $(LDFLAGS) |>
 !cp = |> ^ COPY %f^ cp %f %o |>
 
-: sds/sds.c |> !cc |> build/sds.o
+: foreach deps/b64.c/encode.c deps/sds/sds.c |> !cc |> build/%B.o
 
 : foreach src/common/*.c |> !cc |> build/common-%B.o
 : foreach src/uprocd/*.c |> !cc |> build/uprocd-%B.o
 : foreach src/uprocctl/*.c |> !cc |> build/uprocctl-%B.o
 
-: build/common-*.o build/uprocd-*.o |> !link |> build/uprocd
-: build/common-*.o build/uprocctl-*.o |> !link |> build/uprocctl
+: build/encode.o build/common-*.o build/uprocd-*.o |> !link |> build/uprocd
+: build/encode.o build/common-*.o build/uprocctl-*.o |> !link |> build/uprocctl
 
 : modules/simple/simple.module |> !cp |> build/modules/%b
 : modules/simple/simple.c |> !cc |> build/modules.o/simple.o
