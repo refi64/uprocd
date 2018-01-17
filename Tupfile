@@ -24,6 +24,7 @@ LDFLAGS += -ldl -lJudy
 : modules/python/python.module |> !cp |> build/modules/%b
 : modules/python/_uprocd_modules.py |> !cp |> build/modules/%b
 : modules/python/python.c |> !cc |> build/modules.o/python.o
+: modules/python/ipython.module |> !cp |> build/modules/%b
 
 : foreach build/modules.o/*.o |> !linkso |> build/modules/%B.so
 

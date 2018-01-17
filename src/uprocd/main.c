@@ -36,6 +36,7 @@ config *load_config(const char *module, sds *module_dir) {
 
   static const char *search_paths[] = {
     "/usr/share/uprocd/modules",
+    "/usr/local/share/uprocd/modules",
     "@/uprocd/modules",
     "build/modules",
   };
@@ -134,6 +135,8 @@ config *resolve_derived_config(config *cfg) {
       user_value_free(prev);
     }
   }
+
+  base->native.native_lib = sdsdup(cfg->derived.base);
 
   config_free(cfg);
   return base;
