@@ -1,0 +1,13 @@
+# uprocd(7) -- Guide on managing uprocd modules with systemd
+
+## DESCRIPTION
+
+**uprocd** is a tool that starts processes in the background, then "freezes" them. When
+you run a program using **uprocctl**(1), **uprocd** will fork the process and connect it to
+the current terminal. This is essentially a form of "process caching" or "process
+preloading"; processes will start more quickly, as the expensive initialization steps
+have already taken place in the background.
+
+## SEE ALSO
+
+uprocctl(1)

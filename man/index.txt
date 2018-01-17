@@ -1,0 +1,5 @@
+uprocctl(1) uprocctl.1.ronn
+uprocd(7) uprocd.7.ronn
+
+uprocd.module(5) uprocd.module.5.ronn
+uprocd.h(3) uprocd.h.3.ronn

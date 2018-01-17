@@ -31,8 +31,10 @@ my $ldflags = $ENV{LDFLAGS} || '';
 my $help = 0;
 my $mode = 'debug';
 my $python = 'auto';
+my $docs = 'auto';
 
-GetOptions('help|h' => \$help, 'mode|m=s' => \$mode, 'python=s' => \$python);
+GetOptions('help|h' => \$help, 'mode|m=s' => \$mode, 'python=s' => \$python,
+           'docs=s' => \$docs);
 pod2usage(1) if $help;
 
 error "Invalid build mode: $mode." if $mode !~ m/debug-asan|debug|release/;
@@ -67,6 +69,15 @@ if ($python eq 'auto') {
   }
 }
 
+my $ronn;
+
+if ($docs eq 'auto') {
+  print 'Checking for ronn... ';
+  $ronn = which($ENV{RONN}) || which('ronn');
+  $docs = defined($ronn) ? 'yes' : 'no';
+  print "$docs\n";
+}
+
 if ($mode eq 'debug') {
   $cflags .= ' -g ';
 } elsif ($mode eq 'release') {
@@ -91,6 +102,8 @@ print $fh "CONFIG_MODE=$mode\n";
 
 print $fh "CONFIG_PYTHON=$python\n";
 
+print $fh "CONFIG_RONN=$ronn\n" if defined($ronn);
+
 close $fh;
 
 print "done\n";
@@ -104,6 +117,7 @@ print "Build mode: $mode\n";
 print "C compiler: $cc\n";
 print "C compiler flags: $cflags\n";
 print "C compiler flags: $ldflags\n";
+print "Build docs: $docs\n";
 print "\n";
 print "===================\n";
 print "===== Modules =====\n";
@@ -118,6 +132,6 @@ __END__
 
 =head1 SYNOPSIS
 
-./configure [--help|-h] [--mode,-m=debug-asan|debug|release] [--python=yes|no|auto]
+./configure [--help|-h] [--mode,-m=debug-asan|debug|release] [--python=yes|no|auto] [--docs=yes|no|auto]
 
 =cut

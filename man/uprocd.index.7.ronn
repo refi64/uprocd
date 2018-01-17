@@ -1,0 +1,13 @@
+# uprocd.index(7) -- uprocd documentation index
+
+## BASIC USAGE
+
+uprocd(7) - Guide on managing uprocd modules with systemd
+
+uprocctl(1) - Run a command through uprocd
+
+## DEVELOPING MODULES
+
+uprocd.module(5) - The uprocd module configuration files
+
+uprocd.h(3) - The uprocd API header
