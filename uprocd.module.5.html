@@ -47,10 +47,18 @@
   .mp {max-width: initial;padding: 1em 2em;margin-left: 4em}
   .mp h2 {margin-left: -4em}
   pre {overflow-x: auto}
+  pre::-webkit-scrollbar {height: 5px}
+  pre::-webkit-scrollbar-track {background: #EEEEEE}
+  pre::-webkit-scrollbar-thumb {background: #9E9E9E}
+  pre::-webkit-scrollbar-thumb:hover {background: #757575}
   .mp > p,.mp > pre,.mp > ul,.mp > ol,.mp > dl {margin-left: 0}
   @media only screen and (max-width: 768px) {.mp {margin-left: 1em}
    .mp h2 {margin-left: -1em}
    #SEE-ALSO +p {text-align: initial}
+  }
+  @media only screen and (max-width: 450px) {ol.man-decor li.tr {padding-right: 0.5em}
+  }
+  @media only screen and (max-width: 430px) {ol.man-decor li.tr {padding-right: 1em}
   }
   </style>
 </head>
@@ -95,7 +103,7 @@
 
 <p>A module file with the extension .module contains the specification for a uprocd module.
 This page lists the format of a uprocd module, as well as several examples. For guidance
-on creating a native module library, see <code>uprocd.h</code>(3).</p>
+on creating a native module library, see <a class="man-ref" href="uprocd.h.3.html"><code>uprocd.h</code><span class="s">(3)</span></a>.</p>
 
 <h2 id="BASIC-SYNTAX">BASIC SYNTAX</h2>
 
@@ -124,7 +132,7 @@ NormalKey=Value
 <p>There are two types of modules: native modules and derived modules.</p>
 
 <p>Native modules consist of a .module file and shared object library (ending in .so) that
-contains a symbol <code>uprocd_module_entry</code>(3) that runs the module code. These modules can
+contains a symbol <a class="man-ref" href="uprocd_module_entry.3.html"><code>uprocd_module_entry</code><span class="s">(3)</span></a> that runs the module code. These modules can
 specify properties that can be passed to them from derived modules.</p>
 
 <p>Derived modules are extensions of native modules. These consist of only a .module file,
@@ -139,28 +147,24 @@ which must be the very first section in the file.</p>
 
 <p><code>ProcessName=&lt;string></code></p>
 
-<pre><code>The process name. uprocctl will rename itself to this name when running a module.
-</code></pre>
+<blockquote><p>The process name. uprocctl will rename itself to this name when running a module.</p></blockquote>
 
 <p><code>Description=&lt;string></code></p>
 
-<pre><code>A description for the module.
-</code></pre>
+<blockquote><p>A description for the module.</p></blockquote>
 
 <p>[NativeModule] sections may specify the following properties:</p>
 
 <p><code>NativeLib=&lt;string></code></p>
 
-<pre><code>By default, uprocd will look for a .so file with the same name as the .module file.
-This will change the name of the .so file to look for.
-</code></pre>
+<blockquote><p>By default, uprocd will look for a .so file with the same name as the .module file.
+This will change the name of the .so file to look for.</p></blockquote>
 
 <p>A [DerivedModule] section <code>must</code> specify the following properties:</p>
 
 <p><code>Base=&lt;string></code></p>
 
-<pre><code>The name of the native module that this derived module is extending.
-</code></pre>
+<blockquote><p>The name of the native module that this derived module is extending.</p></blockquote>
 
 <h2 id="MODULE-PROPERTIES">MODULE PROPERTIES</h2>
 
@@ -170,23 +174,19 @@ and each value will be the type of property. The following types are supported:<
 
 <p><code>string</code></p>
 
-<pre><code>A string value.
-</code></pre>
+<blockquote><p>A string value.</p></blockquote>
 
 <p><code>number</code></p>
 
-<pre><code>A number value. This may be either a floating point number or an integer.
-</code></pre>
+<blockquote><p>A number value. This may be either a floating point number or an integer.</p></blockquote>
 
 <p><code>list string</code></p>
 
-<pre><code>A space-seperated list of strings.
-</code></pre>
+<blockquote><p>A space-seperated list of strings.</p></blockquote>
 
 <p><code>list number</code></p>
 
-<pre><code>A space-seperated list of numbers.
-</code></pre>
+<blockquote><p>A space-seperated list of numbers.</p></blockquote>
 
 <p>In additions, the module should declare default values for all properties that a
 derived module does not have to specify. This is done in the [Defaults] section. Each

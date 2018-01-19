@@ -47,10 +47,18 @@
   .mp {max-width: initial;padding: 1em 2em;margin-left: 4em}
   .mp h2 {margin-left: -4em}
   pre {overflow-x: auto}
+  pre::-webkit-scrollbar {height: 5px}
+  pre::-webkit-scrollbar-track {background: #EEEEEE}
+  pre::-webkit-scrollbar-thumb {background: #9E9E9E}
+  pre::-webkit-scrollbar-thumb:hover {background: #757575}
   .mp > p,.mp > pre,.mp > ul,.mp > ol,.mp > dl {margin-left: 0}
   @media only screen and (max-width: 768px) {.mp {margin-left: 1em}
    .mp h2 {margin-left: -1em}
    #SEE-ALSO +p {text-align: initial}
+  }
+  @media only screen and (max-width: 450px) {ol.man-decor li.tr {padding-right: 0.5em}
+  }
+  @media only screen and (max-width: 430px) {ol.man-decor li.tr {padding-right: 1em}
   }
   </style>
 </head>
@@ -92,7 +100,7 @@ UPROCD_EXPORT const char * uprocd_context_get_cwd(uprocd_context *ctx)
 
 <h2 id="DESCRIPTION">DESCRIPTION</h2>
 
-<p>This function will return the working directory of the <code>uprocctl</code>(1) process that
+<p>This function will return the working directory of the <a class="man-ref" href="uprocctl.1.html"><code>uprocctl</code><span class="s">(1)</span></a> process that
 called this module.</p>
 
 <h2 id="EXAMPLE">EXAMPLE</h2>

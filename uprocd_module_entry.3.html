@@ -47,10 +47,18 @@
   .mp {max-width: initial;padding: 1em 2em;margin-left: 4em}
   .mp h2 {margin-left: -4em}
   pre {overflow-x: auto}
+  pre::-webkit-scrollbar {height: 5px}
+  pre::-webkit-scrollbar-track {background: #EEEEEE}
+  pre::-webkit-scrollbar-thumb {background: #9E9E9E}
+  pre::-webkit-scrollbar-thumb:hover {background: #757575}
   .mp > p,.mp > pre,.mp > ul,.mp > ol,.mp > dl {margin-left: 0}
   @media only screen and (max-width: 768px) {.mp {margin-left: 1em}
    .mp h2 {margin-left: -1em}
    #SEE-ALSO +p {text-align: initial}
+  }
+  @media only screen and (max-width: 450px) {ol.man-decor li.tr {padding-right: 0.5em}
+  }
+  @media only screen and (max-width: 430px) {ol.man-decor li.tr {padding-right: 1em}
   }
   </style>
 </head>
@@ -99,19 +107,19 @@ which will be called to initialize and run your modules.</p>
 
 <ol>
 <li>Perform necessary initialization tasks.</li>
-<li>Optionally call <code>uprocd_on_exit</code>(3) to set up any failure handlers if an error occurs.</li>
-<li>Call <code>uprocd_run</code>(3) to fork the process and retrieve a context.</li>
+<li>Optionally call <a class="man-ref" href="uprocd_on_exit.3.html"><code>uprocd_on_exit</code><span class="s">(3)</span></a> to set up any failure handlers if an error occurs.</li>
+<li>Call <a class="man-ref" href="uprocd_run.3.html"><code>uprocd_run</code><span class="s">(3)</span></a> to fork the process and retrieve a context.</li>
 <li>Use the <code>uprocd_context_*</code> functions to retrieve necessary information, such as the
 desired environment.</li>
 <li>Perform set up steps that should be done before the new context is entered.</li>
-<li>Call <code>uprocd_context_enter</code>(3) to enter the new context.</li>
-<li>Call <code>uprocd_context_free</code>(3) only if you are done working with the context or any
+<li>Call <a class="man-ref" href="uprocd_context_enter.3.html"><code>uprocd_context_enter</code><span class="s">(3)</span></a> to enter the new context.</li>
+<li>Call <a class="man-ref" href="uprocd_context_free.3.html"><code>uprocd_context_free</code><span class="s">(3)</span></a> only if you are done working with the context or any
 of its return values.</li>
 <li>Run the main module code.</li>
 </ol>
 
 
-<p>If this seems confusing, see <code>uprocd.h</code>(3) and <code>uprocd</code>(7) for a higher-level overview
+<p>If this seems confusing, see <a class="man-ref" href="uprocd.h.3.html"><code>uprocd.h</code><span class="s">(3)</span></a> and <a class="man-ref" href="uprocd.7.html"><code>uprocd</code><span class="s">(7)</span></a> for a higher-level overview
 of the inner workings of uprocd.</p>
 
 <h2 id="EXAMPLE">EXAMPLE</h2>

@@ -47,10 +47,18 @@
   .mp {max-width: initial;padding: 1em 2em;margin-left: 4em}
   .mp h2 {margin-left: -4em}
   pre {overflow-x: auto}
+  pre::-webkit-scrollbar {height: 5px}
+  pre::-webkit-scrollbar-track {background: #EEEEEE}
+  pre::-webkit-scrollbar-thumb {background: #9E9E9E}
+  pre::-webkit-scrollbar-thumb:hover {background: #757575}
   .mp > p,.mp > pre,.mp > ul,.mp > ol,.mp > dl {margin-left: 0}
   @media only screen and (max-width: 768px) {.mp {margin-left: 1em}
    .mp h2 {margin-left: -1em}
    #SEE-ALSO +p {text-align: initial}
+  }
+  @media only screen and (max-width: 450px) {ol.man-decor li.tr {padding-right: 0.5em}
+  }
+  @media only screen and (max-width: 430px) {ol.man-decor li.tr {padding-right: 1em}
   }
   </style>
 </head>
@@ -98,8 +106,8 @@
 
 <p><code>uprocctl</code> allows you to perform high-level communication with uprocd modules. You can
 query information about the module, or run a command through it. For module state
-management (e.g. starting and stopping a module, or getting logs), use <code>systemctl</code>(1)
-and <code>journalctl</code>(1) (see <code>uprocd</code>(7) for a guide).</p>
+management (e.g. starting and stopping a module, or getting logs), use <a class="man-ref" href="https://www.freedesktop.org/software/systemd/man/systemctl.html"><code>systemctl</code><span class="s">(1)</span></a>
+and <a class="man-ref" href="https://www.freedesktop.org/software/systemd/man/journalctl.html"><code>journalctl</code><span class="s">(1)</span></a> (see <a class="man-ref" href="uprocd.7.html"><code>uprocd</code><span class="s">(7)</span></a> for a guide).</p>
 
 <p><code>u</code> is simply an alias for <code>uprocctl run</code>. If a symlink to uprocctl is created with
 a <code>u</code> prefix (such as upython), the prefix will be removed and the filename will be
@@ -112,18 +120,16 @@ uprocctl run python -h.</p>
 
 <p><code>status</code></p>
 
-<pre><code>Shows the status of the given uprocd module.
-</code></pre>
+<blockquote><p>Shows the status of the given uprocd module.</p></blockquote>
 
 <p><code>run</code></p>
 
-<pre><code>Forks the given uprocd module, connecting its standard I/O to the current terminal.
+<blockquote><p>Forks the given uprocd module, connecting its standard I/O to the current terminal.
 uprocctl will trace the module, exiting with the module's exit code. Any arguments
-given will be passed down to the module.
+given will be passed down to the module.</p></blockquote>
 
-uprocctl will rename its process name to that specified by the module, or to the
-module's own name if no process name was given.
-</code></pre>
+<p>uprocctl will rename its process name to that specified by the module, or to the
+module's own name if no process name was given.</p>
 
 <h2 id="EXAMPLES">EXAMPLES</h2>
 

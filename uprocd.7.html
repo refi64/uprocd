@@ -47,10 +47,18 @@
   .mp {max-width: initial;padding: 1em 2em;margin-left: 4em}
   .mp h2 {margin-left: -4em}
   pre {overflow-x: auto}
+  pre::-webkit-scrollbar {height: 5px}
+  pre::-webkit-scrollbar-track {background: #EEEEEE}
+  pre::-webkit-scrollbar-thumb {background: #9E9E9E}
+  pre::-webkit-scrollbar-thumb:hover {background: #757575}
   .mp > p,.mp > pre,.mp > ul,.mp > ol,.mp > dl {margin-left: 0}
   @media only screen and (max-width: 768px) {.mp {margin-left: 1em}
    .mp h2 {margin-left: -1em}
    #SEE-ALSO +p {text-align: initial}
+  }
+  @media only screen and (max-width: 450px) {ol.man-decor li.tr {padding-right: 0.5em}
+  }
+  @media only screen and (max-width: 430px) {ol.man-decor li.tr {padding-right: 1em}
   }
   </style>
 </head>
@@ -87,7 +95,7 @@
 <h2 id="DESCRIPTION">DESCRIPTION</h2>
 
 <p><strong>uprocd</strong> is a tool that starts processes in the background, then "freezes" them. When
-you run a program using <code>uprocctl</code>(1), uprocd will fork the process and connect it to
+you run a program using <a class="man-ref" href="uprocctl.1.html"><code>uprocctl</code><span class="s">(1)</span></a>, uprocd will fork the process and connect it to
 the current terminal. This is essentially a form of "process caching" or "process
 preloading"; processes will start more quickly, as the expensive initialization steps
 have already taken place in the background.</p>
@@ -103,16 +111,16 @@ have already taken place in the background.</p>
 </ul>
 
 
-<p>(For more information on the module format, see <code>uprocd.module</code>(5).)</p>
+<p>(For more information on the module format, see <a class="man-ref" href="uprocd.module.5.html"><code>uprocd.module</code><span class="s">(5)</span></a>.)</p>
 
 <p>Each uprocd module is a seperate daemon, and all are started via the systemd unit
-uprocd@. Therefore, primary management of uprocd modules uses <code>systemctl</code>(1). In
+uprocd@. Therefore, primary management of uprocd modules uses <a class="man-ref" href="https://www.freedesktop.org/software/systemd/man/systemctl.html"><code>systemctl</code><span class="s">(1)</span></a>. In
 order to access a module, use the uprocd@ template unit, with the instance name set to
 the module name. For instance, the python module will be under the systemd name
 uprocd@python. uprocd logs can be viewed through either <code>systemctl status</code> or
-<code>journalctl</code>(1).</p>
+<a class="man-ref" href="https://www.freedesktop.org/software/systemd/man/journalctl.html"><code>journalctl</code><span class="s">(1)</span></a>.</p>
 
-<p>Querying information about, or running, modules should be done via <code>uprocctl</code>(1)</p>
+<p>Querying information about, or running, modules should be done via <a class="man-ref" href="uprocctl.1.html"><code>uprocctl</code><span class="s">(1)</span></a></p>
 
 <h2 id="MODULE-MANAGEMENT-EXAMPLES">MODULE MANAGEMENT EXAMPLES</h2>
 
@@ -137,7 +145,7 @@ uprocd@python. uprocd logs can be viewed through either <code>systemctl status</
 $ systemctl --user restart uprocd@module-name
 </code></pre>
 
-<p>To view the full, non-truncated logs, use <code>journalctl</code>(1):</p>
+<p>To view the full, non-truncated logs, use <a class="man-ref" href="https://www.freedesktop.org/software/systemd/man/journalctl.html"><code>journalctl</code><span class="s">(1)</span></a>:</p>
 
 <pre><code>$ journalctl -b --user-unit uprocd@module-name
 </code></pre>
@@ -149,12 +157,12 @@ $ systemctl --user restart uprocd@module-name
 <p>When you start a uprocd service via systemd, a <code>uprocd</code> daemon is run for the module.
 Every module has its own daemon. The module will immediately perform any initialization
 steps, followed by relinquishing control back to the daemon. When the user requests for
-a program to be run via <code>uprocctl</code>(1), the daemon will fork, and the forked process
+a program to be run via <a class="man-ref" href="uprocctl.1.html"><code>uprocctl</code><span class="s">(1)</span></a>, the daemon will fork, and the forked process
 will give a "context" back to the module.</p>
 
-<p>The context object contains the environment of and arguments passed to <code>uprocctl</code>(1).
+<p>The context object contains the environment of and arguments passed to <a class="man-ref" href="uprocctl.1.html"><code>uprocctl</code><span class="s">(1)</span></a>.
 When the native module "enters" the context, its environment will be updated to match
-that of the <code>uprocctl</code>(1) caller, and it will be attached to the caller's terminal.
+that of the <a class="man-ref" href="uprocctl.1.html"><code>uprocctl</code><span class="s">(1)</span></a> caller, and it will be attached to the caller's terminal.
 After this, the native module will run the desired program.</p>
 
 <h2 id="SEE-ALSO">SEE ALSO</h2>
