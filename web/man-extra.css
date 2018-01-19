@@ -1,3 +1,9 @@
+@import url('https://fonts.googleapis.com/css?family=Roboto+Mono');
+
+.mp, .mp code, .mp pre, .mp tt, .mp kbd, .mp samp, .mp h3, .mp h4 {
+  font-family: "Roboto Mono", monospace;
+}
+
 .mp {
   max-width: initial;
   padding: 1em 2em;
