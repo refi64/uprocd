@@ -8,7 +8,7 @@ sub which {
   return undef if !defined($prog);
   return -X $prog && $prog if index($prog, '/') != -1;
   for my $dir (split /:/, $ENV{PATH}) {
-    return $prog if -X "$dir/$prog";
+    return "$dir/$prog" if -X "$dir/$prog";
   }
   return undef;
 }
@@ -69,12 +69,12 @@ if ($python eq 'auto') {
   }
 }
 
-my $ronn;
+my $ruby;
 
 if ($docs eq 'auto') {
-  print 'Checking for ronn... ';
-  $ronn = which($ENV{RONN}) || which('ronn');
-  $docs = defined($ronn) ? 'yes' : 'no';
+  print 'Checking for Ruby... ';
+  $ruby = which($ENV{RUBY}) || which('ruby');
+  $docs = defined($ruby) ? 'yes' : 'no';
   print "$docs\n";
 }
 
@@ -102,7 +102,7 @@ print $fh "CONFIG_MODE=$mode\n";
 
 print $fh "CONFIG_PYTHON=$python\n";
 
-print $fh "CONFIG_RONN=$ronn\n" if defined($ronn);
+print $fh "CONFIG_RUBY=$ruby\n" if defined($ruby);
 
 close $fh;
 
@@ -117,7 +117,7 @@ print "Build mode: $mode\n";
 print "C compiler: $cc\n";
 print "C compiler flags: $cflags\n";
 print "C compiler flags: $ldflags\n";
-print "Build docs: $docs\n";
+print "Build docs: $docs@{[defined($ruby) ? (' (using Ruby: ' . $ruby . ')') : '']}\n";
 print "\n";
 print "===================\n";
 print "===== Modules =====\n";

@@ -4,7 +4,11 @@
 # - Uses a *correct* basename function.
 # - Writes outputs to the specified output directory.
 
-ENV['RONN_STYLE'] = "#{File.dirname(__FILE__)}/../web"
+script_dir = File.dirname(__FILE__)
+
+$LOAD_PATH.insert 0, "#{script_dir}/ronn/lib"
+
+ENV['RONN_STYLE'] = "#{script_dir}/../web"
 
 require 'ronn'
 

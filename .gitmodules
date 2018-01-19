@@ -1,3 +1,6 @@
 [submodule "sds"]
 	path = sds
 	url = https://github.com/antirez/sds.git
+[submodule "scripts/ronn"]
+	path = scripts/ronn
+	url = https://github.com/rtomayko/ronn

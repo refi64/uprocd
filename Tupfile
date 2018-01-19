@@ -12,7 +12,6 @@ SDS = build/sds.o
 !linkso = | $(SDS) |> ^ LINKSO %o^ @(CC) $(SDS) -shared %f -o %o $(LDFLAGS) |>
 !ln = |> ^ LN %o^ ln -sf `basename %f` %o |>
 !cp = |> ^ COPY %f -> %o^ cp %f %o |>
-!man = | man/index.txt |> ^ RONN %f^ scripts/ronn.rb "`dirname "%o"`" %f |>
 
 : sds/sds.c |> !cc |> build/sds.o
 
@@ -42,7 +41,9 @@ endif
 
 : foreach build/modules.o/*.o |> !linkso |> build/modules/%B.so
 
-ifdef RONN
+ifdef RUBY
+  !man = | man/index.txt |> ^ RONN %f^ @(RUBY) scripts/ronn.rb "`dirname "%o"`" %f |>
+
   : man/uprocctl.1.ronn |> !cp |> build/ronn/u.1.ronn
   : foreach man/*.ronn build/ronn/*.ronn |> !man |> build/man/%B | build/man/%B.html
 
