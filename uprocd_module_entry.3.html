@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv='content-type' value='text/html;charset=utf8'>
+  <meta name='generator' value='Ronn/v0.7.3 (http://github.com/rtomayko/ronn/tree/0.7.3)'>
+  <title>uprocd_module_entry(3) - Entry point for uprocd modules</title>
+  <style type='text/css' media='all'>
+  /* style: man */
+  body#manpage {margin:0}
+  .mp {max-width:100ex;padding:0 9ex 1ex 4ex}
+  .mp p,.mp pre,.mp ul,.mp ol,.mp dl {margin:0 0 20px 0}
+  .mp h2 {margin:10px 0 0 0}
+  .mp > p,.mp > pre,.mp > ul,.mp > ol,.mp > dl {margin-left:8ex}
+  .mp h3 {margin:0 0 0 4ex}
+  .mp dt {margin:0;clear:left}
+  .mp dt.flush {float:left;width:8ex}
+  .mp dd {margin:0 0 0 9ex}
+  .mp h1,.mp h2,.mp h3,.mp h4 {clear:left}
+  .mp pre {margin-bottom:20px}
+  .mp pre+h2,.mp pre+h3 {margin-top:22px}
+  .mp h2+pre,.mp h3+pre {margin-top:5px}
+  .mp img {display:block;margin:auto}
+  .mp h1.man-title {display:none}
+  .mp,.mp code,.mp pre,.mp tt,.mp kbd,.mp samp,.mp h3,.mp h4 {font-family:monospace;font-size:14px;line-height:1.42857142857143}
+  .mp h2 {font-size:16px;line-height:1.25}
+  .mp h1 {font-size:20px;line-height:2}
+  .mp {text-align:justify;background:#fff}
+  .mp,.mp code,.mp pre,.mp pre code,.mp tt,.mp kbd,.mp samp {color:#131211}
+  .mp h1,.mp h2,.mp h3,.mp h4 {color:#030201}
+  .mp u {text-decoration:underline}
+  .mp code,.mp strong,.mp b {font-weight:bold;color:#131211}
+  .mp em,.mp var {font-style:italic;color:#232221;text-decoration:none}
+  .mp a,.mp a:link,.mp a:hover,.mp a code,.mp a pre,.mp a tt,.mp a kbd,.mp a samp {color:#0000ff}
+  .mp b.man-ref {font-weight:normal;color:#434241}
+  .mp pre {padding:0 4ex}
+  .mp pre code {font-weight:normal;color:#434241}
+  .mp h2+pre,h3+pre {padding-left:0}
+  ol.man-decor,ol.man-decor li {margin:3px 0 10px 0;padding:0;float:left;width:33%;list-style-type:none;text-transform:uppercase;color:#999;letter-spacing:1px}
+  ol.man-decor {width:100%}
+  ol.man-decor li.tl {text-align:left}
+  ol.man-decor li.tc {text-align:center;letter-spacing:4px}
+  ol.man-decor li.tr {text-align:right;float:right}
+  </style>
+</head>
+<!--
+  The following styles are deprecated and will be removed at some point:
+  div#man, div#man ol.man, div#man ol.head, div#man ol.man.
+
+  The .man-page, .man-decor, .man-head, .man-foot, .man-title, and
+  .man-navigation should be used instead.
+-->
+<body id='manpage'>
+  <div class='mp' id='man'>
+
+  <div class='man-navigation' style='display:none'>
+    <a href="#NAME">NAME</a>
+    <a href="#SYNOPSIS">SYNOPSIS</a>
+    <a href="#DESCRIPTION">DESCRIPTION</a>
+    <a href="#EXAMPLE">EXAMPLE</a>
+    <a href="#SEE-ALSO">SEE ALSO</a>
+  </div>
+
+  <ol class='man-decor man-head man head'>
+    <li class='tl'>uprocd_module_entry(3)</li>
+    <li class='tc'></li>
+    <li class='tr'>uprocd_module_entry(3)</li>
+  </ol>
+
+  <h2 id="NAME">NAME</h2>
+<p class="man-name">
+  <code>uprocd_module_entry</code> - <span class="man-whatis">Entry point for uprocd modules</span>
+</p>
+
+<h2 id="SYNOPSIS">SYNOPSIS</h2>
+
+<pre><code class="c">#include &lt;uprocd.h&gt;
+
+UPROCD_EXPORT void uprocd_module_entry();
+</code></pre>
+
+<h2 id="DESCRIPTION">DESCRIPTION</h2>
+
+<p>This is not a uprocd API function. Your native modules should implement this function,
+which will be called to initialize and run your modules.</p>
+
+<p>uprocd_module_entry should perform the following:</p>
+
+<ol>
+<li>Perform necessary initialization tasks.</li>
+<li>Optionally call <code>uprocd_on_exit</code>(3) to set up any failure handlers if an error occurs.</li>
+<li>Call <code>uprocd_run</code>(3) to fork the process and retrieve a context.</li>
+<li>Use the <code>uprocd_context_*</code> functions to retrieve necessary information, such as the
+desired environment.</li>
+<li>Perform set up steps that should be done before the new context is entered.</li>
+<li>Call <code>uprocd_context_enter</code>(3) to enter the new context.</li>
+<li>Call <code>uprocd_context_free</code>(3) only if you are done working with the context or any
+of its return values.</li>
+<li>Run the main module code.</li>
+</ol>
+
+
+<p>If this seems confusing, see <code>uprocd.h</code>(3) and <code>uprocd</code>(7) for a higher-level overview
+of the inner workings of uprocd.</p>
+
+<h2 id="EXAMPLE">EXAMPLE</h2>
+
+<pre><code class="c">// This is an example module.
+
+#include &lt;uprocd.h&gt;
+
+UPROCD_EXPORT void uprocd_module_entry() {
+  initialize();
+  uprocd_context *ctx = uprocd_run();
+
+  int argc;
+  char **argv;
+  uprocd_context_get_args(&amp;argc, &amp;argv);
+  set_program_arguments(argc, argv);
+
+  run_main_program();
+  uprocd_context_free(ctx);
+}
+</code></pre>
+
+<h2 id="SEE-ALSO">SEE ALSO</h2>
+
+<p><a class="man-ref" href="uprocd.index.7.html">uprocd.index<span class="s">(7)</span></a>, <a class="man-ref" href="uprocd.h.3.html">uprocd.h<span class="s">(3)</span></a>, <a class="man-ref" href="uprocd_on_exit.3.html">uprocd_on_exit<span class="s">(3)</span></a>, <a class="man-ref" href="uprocd_run.3.html">uprocd_run<span class="s">(3)</span></a>, <a class="man-ref" href="uprocd_context_enter.3.html">uprocd_context_enter<span class="s">(3)</span></a>,
+<a class="man-ref" href="uprocd_context_free.3.html">uprocd_context_free<span class="s">(3)</span></a>, <a class="man-ref" href="uprocd.7.html">uprocd<span class="s">(7)</span></a></p>
+
+
+  <ol class='man-decor man-foot man foot'>
+    <li class='tl'></li>
+    <li class='tc'>January 2018</li>
+    <li class='tr'>uprocd_module_entry(3)</li>
+  </ol>
+
+  </div>
+</body>
+</html>

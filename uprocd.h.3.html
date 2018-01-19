@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv='content-type' value='text/html;charset=utf8'>
+  <meta name='generator' value='Ronn/v0.7.3 (http://github.com/rtomayko/ronn/tree/0.7.3)'>
+  <title>uprocd.h(3) - uprocd native module API index</title>
+  <style type='text/css' media='all'>
+  /* style: man */
+  body#manpage {margin:0}
+  .mp {max-width:100ex;padding:0 9ex 1ex 4ex}
+  .mp p,.mp pre,.mp ul,.mp ol,.mp dl {margin:0 0 20px 0}
+  .mp h2 {margin:10px 0 0 0}
+  .mp > p,.mp > pre,.mp > ul,.mp > ol,.mp > dl {margin-left:8ex}
+  .mp h3 {margin:0 0 0 4ex}
+  .mp dt {margin:0;clear:left}
+  .mp dt.flush {float:left;width:8ex}
+  .mp dd {margin:0 0 0 9ex}
+  .mp h1,.mp h2,.mp h3,.mp h4 {clear:left}
+  .mp pre {margin-bottom:20px}
+  .mp pre+h2,.mp pre+h3 {margin-top:22px}
+  .mp h2+pre,.mp h3+pre {margin-top:5px}
+  .mp img {display:block;margin:auto}
+  .mp h1.man-title {display:none}
+  .mp,.mp code,.mp pre,.mp tt,.mp kbd,.mp samp,.mp h3,.mp h4 {font-family:monospace;font-size:14px;line-height:1.42857142857143}
+  .mp h2 {font-size:16px;line-height:1.25}
+  .mp h1 {font-size:20px;line-height:2}
+  .mp {text-align:justify;background:#fff}
+  .mp,.mp code,.mp pre,.mp pre code,.mp tt,.mp kbd,.mp samp {color:#131211}
+  .mp h1,.mp h2,.mp h3,.mp h4 {color:#030201}
+  .mp u {text-decoration:underline}
+  .mp code,.mp strong,.mp b {font-weight:bold;color:#131211}
+  .mp em,.mp var {font-style:italic;color:#232221;text-decoration:none}
+  .mp a,.mp a:link,.mp a:hover,.mp a code,.mp a pre,.mp a tt,.mp a kbd,.mp a samp {color:#0000ff}
+  .mp b.man-ref {font-weight:normal;color:#434241}
+  .mp pre {padding:0 4ex}
+  .mp pre code {font-weight:normal;color:#434241}
+  .mp h2+pre,h3+pre {padding-left:0}
+  ol.man-decor,ol.man-decor li {margin:3px 0 10px 0;padding:0;float:left;width:33%;list-style-type:none;text-transform:uppercase;color:#999;letter-spacing:1px}
+  ol.man-decor {width:100%}
+  ol.man-decor li.tl {text-align:left}
+  ol.man-decor li.tc {text-align:center;letter-spacing:4px}
+  ol.man-decor li.tr {text-align:right;float:right}
+  </style>
+</head>
+<!--
+  The following styles are deprecated and will be removed at some point:
+  div#man, div#man ol.man, div#man ol.head, div#man ol.man.
+
+  The .man-page, .man-decor, .man-head, .man-foot, .man-title, and
+  .man-navigation should be used instead.
+-->
+<body id='manpage'>
+  <div class='mp' id='man'>
+
+  <div class='man-navigation' style='display:none'>
+    <a href="#NAME">NAME</a>
+    <a href="#SYNOPSIS">SYNOPSIS</a>
+    <a href="#DESCRIPTION">DESCRIPTION</a>
+    <a href="#GETTING-STARTED">GETTING STARTED</a>
+    <a href="#MODULE-BASICS">MODULE BASICS</a>
+    <a href="#ACCESSING-MODULE-PROPERTIES">ACCESSING MODULE PROPERTIES</a>
+    <a href="#USING-CONTEXTS">USING CONTEXTS</a>
+  </div>
+
+  <ol class='man-decor man-head man head'>
+    <li class='tl'>uprocd.h(3)</li>
+    <li class='tc'></li>
+    <li class='tr'>uprocd.h(3)</li>
+  </ol>
+
+  <h2 id="NAME">NAME</h2>
+<p class="man-name">
+  <code>uprocd.h</code> - <span class="man-whatis">uprocd native module API index</span>
+</p>
+
+<h2 id="SYNOPSIS">SYNOPSIS</h2>
+
+<pre><code class="c">#define UPROCD_EXPORT __attribute__((visibility("default")))
+
+typedef void (*uprocd_module_entry_type)();
+UPROCD_EXPORT void uprocd_module_entry();
+
+UPROCD_EXPORT const char * uprocd_module_directory();
+UPROCD_EXPORT char * uprocd_module_path(const char *path);
+UPROCD_EXPORT void uprocd_module_path_free(char *path);
+
+typedef void (*uprocd_exit_handler)(void *userdata);
+UPROCD_EXPORT void uprocd_on_exit(uprocd_exit_handler func, void *userdata);
+
+UPROCD_EXPORT int uprocd_config_present(const char *key);
+UPROCD_EXPORT int uprocd_config_list_size(const char *key);
+UPROCD_EXPORT double uprocd_config_number(const char *key);
+UPROCD_EXPORT double uprocd_config_number_at(const char *list, int index);
+UPROCD_EXPORT const char * uprocd_config_string(const char *key);
+UPROCD_EXPORT const char * uprocd_config_string_at(const char *list, int index);
+
+typedef struct uprocd_context uprocd_context;
+
+UPROCD_EXPORT uprocd_context * uprocd_run();
+UPROCD_EXPORT void uprocd_context_enter(uprocd_context *ctx);
+UPROCD_EXPORT void uprocd_context_free(uprocd_context *ctx);
+
+UPROCD_EXPORT void uprocd_context_get_args(uprocd_context *ctx, int *pargc,
+                                           char ***pargv);
+UPROCD_EXPORT const char * uprocd_context_get_cwd(uprocd_context *ctx);
+UPROCD_EXPORT const char ** uprocd_context_get_env(uprocd_context *ctx);
+</code></pre>
+
+<h2 id="DESCRIPTION">DESCRIPTION</h2>
+
+<p>This is the header file containing the API to be used by native modules.</p>
+
+<h2 id="GETTING-STARTED">GETTING STARTED</h2>
+
+<p><a class="man-ref" href="uprocd.7.html">uprocd<span class="s">(7)</span></a> - Ensure you've already read how uprocd works</p>
+
+<h2 id="MODULE-BASICS">MODULE BASICS</h2>
+
+<p><a class="man-ref" href="uprocd_module_entry.3.html">uprocd_module_entry<span class="s">(3)</span></a> - Entry point for uprocd modules</p>
+
+<p><a class="man-ref" href="uprocd_module_directory.3.html">uprocd_module_directory<span class="s">(3)</span></a> - Retrieve the path to the current uprocd module</p>
+
+<p><a class="man-ref" href="uprocd_module_path.3.html">uprocd_module_path<span class="s">(3)</span></a> - Retrieve the path to a file next to the current uprocd module</p>
+
+<p><a class="man-ref" href="uprocd_module_path_free.3.html">uprocd_module_path_free<span class="s">(3)</span></a> - Free a <a class="man-ref" href="uprocd_module_path.3.html">uprocd_module_path<span class="s">(3)</span></a> return value</p>
+
+<p><a class="man-ref" href="uprocd_on_exit.3.html">uprocd_on_exit<span class="s">(3)</span></a> - Set a handler to be called on <a class="man-ref" href="uprocd_run.3.html">uprocd_run<span class="s">(3)</span></a> failure</p>
+
+<h2 id="ACCESSING-MODULE-PROPERTIES">ACCESSING MODULE PROPERTIES</h2>
+
+<p><a class="man-ref" href="uprocd_config_present.3.html">uprocd_config_present<span class="s">(3)</span></a> - Determine if the given property is present</p>
+
+<p><a class="man-ref" href="uprocd_config_list_size.3.html">uprocd_config_list_size<span class="s">(3)</span></a> - Return the size of the list at the given property</p>
+
+<p><a class="man-ref" href="uprocd_config_number.3.html">uprocd_config_number<span class="s">(3)</span></a> - Return the number at the given property</p>
+
+<p><a class="man-ref" href="uprocd_config_number_at.3.html">uprocd_config_number_at<span class="s">(3)</span></a> - Return the number at the given index of a list</p>
+
+<p><a class="man-ref" href="uprocd_config_string.3.html">uprocd_config_string<span class="s">(3)</span></a> - Return the string at the given property</p>
+
+<p><a class="man-ref" href="uprocd_config_string_at.3.html">uprocd_config_string_at<span class="s">(3)</span></a> - Return the string at the given index of a list</p>
+
+<h2 id="USING-CONTEXTS">USING CONTEXTS</h2>
+
+<p><a class="man-ref" href="uprocd_run.3.html">uprocd_run<span class="s">(3)</span></a> - Enter the main uprocd daemon and fork the process</p>
+
+<p><a class="man-ref" href="uprocd_context_enter.3.html">uprocd_context_enter<span class="s">(3)</span></a> - Enter a uprocd context object</p>
+
+<p><a class="man-ref" href="uprocd_context_free.3.html">uprocd_context_free<span class="s">(3)</span></a> - Free a uprocd context</p>
+
+<p><a class="man-ref" href="uprocd_context_get_args.3.html">uprocd_context_get_args<span class="s">(3)</span></a> - Retrieve arguments from a uprocd context</p>
+
+<p><a class="man-ref" href="uprocd_context_get_cwd.3.html">uprocd_context_get_cwd<span class="s">(3)</span></a> - Retrieve the working directory from a uprocd context</p>
+
+<p><a class="man-ref" href="uprocd_context_get_env.3.html">uprocd_context_get_env<span class="s">(3)</span></a> - Retrieve the environment from a uprocd context</p>
+
+
+  <ol class='man-decor man-foot man foot'>
+    <li class='tl'></li>
+    <li class='tc'>January 2018</li>
+    <li class='tr'>uprocd.h(3)</li>
+  </ol>
+
+  </div>
+</body>
+</html>
