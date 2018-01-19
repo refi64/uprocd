@@ -12,11 +12,11 @@
 #include <unistd.h>
 
 extern char **environ;
-char *prog;
 int64_t target_pid = -1;
 
 #define STATUS_USAGE "status [-h] module"
 #define RUN_USAGE "run [-h] module [args...]"
+#define U_USAGE "[-h] module [args...]"
 
 void _fail(sds message) {
   fprintf(stderr, "uprocctl: %s\n", message);
@@ -25,25 +25,39 @@ void _fail(sds message) {
 
 #define FAIL(...) _fail(sdscatfmt(sdsempty(), __VA_ARGS__))
 
+char * last_path_component(char *path) {
+  char *p = strrchr(path, '/');
+  return p ? p + 1 : path;
+}
+
 void usage() {
-  printf("usage: %s -h\n", prog);
-  printf("       %s " RUN_USAGE "\n", prog);
+  puts("usage: uprocctl -h");
+  puts("       uprocctl " STATUS_USAGE);
+  puts("       uprocctl " RUN_USAGE);
+  puts("       u " U_USAGE);
 }
 
 void status_usage() {
-  printf("usage: %s " STATUS_USAGE "\n", prog);
+  puts("usage: uprocctl " STATUS_USAGE);
 }
 
 void run_usage() {
-  printf("usage: %s " RUN_USAGE "\n", prog);
+  puts("usage: uprocctl " RUN_USAGE);
+}
+
+void u_usage() {
+  puts("usage: u " U_USAGE);
 }
 
 void help() {
-  puts("uprocctl allows you to communicate with the uprocd modules.");
+  puts("uprocctl allows you to communicate with uprocd modules.");
   puts("");
   puts("Commands:");
   puts("");
+  puts("  status      Show the status of a uprocd module.");
   puts("  run         Run a command through a uprocd module.");
+  puts("");
+  puts("The u command is a shortcut for uprocctl run.");
 }
 
 void status_help() {
@@ -53,12 +67,23 @@ void status_help() {
   puts("  module   The uprocd module to retrieve information for.");
 }
 
-void run_help() {
+void run_help_base(int u) {
   puts("uprocctl run allows you to spawn commands via the uprocd modules.");
+  if (u) {
+    puts("u is a shortcut for uprocctl run.");
+  }
   puts("");
   puts("  -h          Show this screen.");
   puts("  module      The uprocd module to run.");
   puts("  [args...]   Command line arguments to pass to the module.");
+}
+
+void run_help() {
+  run_help_base(0);
+}
+
+void u_help() {
+  run_help_base(1);
 }
 
 int status(const char *module) {
@@ -257,8 +282,14 @@ int run(char *module, int argc, char **argv) {
 
   rc = sd_bus_call(bus, msg, 0, &err, &reply);
   if (rc < 0) {
-    FAIL("sd_bus_call failed: %s", err.message);
-    FAIL("Are you sure the uprocd module has been started?");
+    if (strcmp(err.name, SD_BUS_ERROR_SERVICE_UNKNOWN) == 0) {
+      FAIL("Failed to locate %s's D-Bus service.", module);
+      FAIL("Are you sure it has been started? (Try systemctl --user status uprocd@%s.)",
+           module);
+    } else {
+      FAIL("sd_bus_call failed: %s", err.message);
+      FAIL("Are you sure the uprocd module has been started?");
+    }
     goto end;
   }
 
@@ -296,50 +327,81 @@ int run(char *module, int argc, char **argv) {
   }
 }
 
-int main(int argc, char **argv) {
-  setproctitle_init(argc, argv);
-  prog = argv[0];
-
-  if (argc < 2) {
-    FAIL("An argument is required.");
+int check_command(const char *command, int argc, char **argv, int exact,
+                  void (*usage)(), void (*help)()) {
+  int correct_number = exact ? argc == 1 : argc >= 1;
+  if (!correct_number) {
+    if (exact) {
+      FAIL("%s requires exactly one argument.", command);
+    } else {
+      FAIL("%s requires at least one argument.", command);
+    }
     usage();
-    return 1;
+    return -1;
   }
 
-  if (strcmp(argv[1], "-h") == 0) {
+  int is_help = strcmp(argv[0], "-h") == 0;
+  if (argv[0][0] == '-' && !is_help) {
+    FAIL("Invalid argument: %s.", argv[0]);
+    usage();
+    return -1;
+  }
+
+  if (is_help) {
     usage();
     putchar('\n');
     help();
-    return 0;
-  } else if (strcmp(argv[1], "status") == 0) {
-    if (argc < 3) {
-      FAIL("status requires an argument.");
-      status_usage();
-      return 1;
-    } else if (strcmp(argv[2], "-h") == 0) {
-      status_usage();
-      putchar('\n');
-      status_help();
-      return 0;
-    } else {
-      return status(argv[2]);
-    }
-  } else if (strcmp(argv[1], "run") == 0) {
-    if (argc < 3) {
-      FAIL("run requires an argument.");
-      run_usage();
-      return 1;
-    } else if (strcmp(argv[2], "-h") == 0) {
-      run_usage();
-      putchar('\n');
-      run_help();
-      return 0;
-    } else {
-      return run(argv[2], argc - 3, argv + 3);
-    }
-  } else {
-    FAIL("Invalid command.");
-    usage();
     return 1;
+  }
+
+  return 0;
+}
+
+int main(int argc, char **argv) {
+  setproctitle_init(argc, argv);
+
+  char *name = last_path_component(argv[0]);
+
+  if (strcmp(name, "u") == 0) {
+    int rc = check_command("u", argc - 1, argv + 1, 0, u_usage, u_help);
+    if (rc) {
+      return rc < 0 ? 1 : 0;
+    }
+    return run(argv[1], argc - 2, argv + 2);
+  } else if (strncmp(name, "u", 1) == 0) {
+    return run(name + 1, argc - 1, argv + 1);
+  } else {
+    if (strcmp(name, "uprocctl") != 0) {
+      FAIL("WARNING: argv[0] is not a recognized uprocd symlink. Assuming uprocctl...");
+    }
+
+    if (argc < 2) {
+      FAIL("An argument is required.");
+      usage();
+      return 1;
+    }
+
+    if (strcmp(argv[1], "-h") == 0) {
+      usage();
+      putchar('\n');
+      help();
+      return 0;
+    } else if (strcmp(argv[1], "status") == 0) {
+      int rc = check_command("status", argc - 2, argv + 2, 1, status_usage, status_help);
+      if (rc) {
+        return rc < 0 ? 1 : 0;
+      }
+      return status(argv[2]);
+    } else if (strcmp(argv[1], "run") == 0) {
+      int rc = check_command("run", argc - 2, argv + 2, 0, run_usage, run_help);
+      if (rc) {
+        return rc < 0 ? 1 : 0;
+      }
+      return run(argv[2], argc - 3, argv + 3);
+    } else {
+      FAIL("Invalid command.");
+      usage();
+      return 1;
+    }
   }
 }

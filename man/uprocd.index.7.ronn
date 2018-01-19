@@ -9,7 +9,7 @@ well on your way.
 
 uprocd(7) - Guide on managing uprocd modules with systemd
 
-uprocctl(1) - Query or run uprocd modules
+uprocctl(1), u(1) - Query or run uprocd modules
 
 ## DEVELOPING MODULES
 
