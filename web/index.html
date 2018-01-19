@@ -107,6 +107,13 @@
     attaches the forked version to your terminal. This means that processes are only
     initialized once, so you don't have to wait around after starting a process.</p>
 
+  <p>
+    In other words: many programs will have a "daemon mode", where a copy of the program
+    is running in the background, in order to improve startup speed. uprocd uses the
+    same principle, except it is designed to be more generic: any application author
+    can easily create a uprocd module in order to make their application's start-up
+    time faster.</p>
+
   <p>Want proof that it works?</p>
 
   <pre><code>
@@ -115,6 +122,10 @@ Time elapsed: 0:00.60
  ryan@DevPC-archLX  ~  /usr/bin/time -f 'Time elapsed: %E' u ipython -h &gt; /dev/null
 Time elapsed: 0:00.15
   </code></pre>
+
+  <p>
+    The uprocd version is faster because a copy of IPython was already running. That
+    copy was just forked and attached to the current terminal.</p>
 
   <h2 id="getting-started"><a class="clear" href="#getting-started">Getting Started</a></h2>
 
