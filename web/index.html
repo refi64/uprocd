@@ -1,0 +1,210 @@
+<head>
+  <title>uprocd</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto|Roboto+Mono">
+
+  <style>
+    body {
+      font-family: Roboto, sans-serif;
+      margin: 0 2em;
+    }
+
+    pre {
+      margin-top: -1em;
+    }
+
+    code {
+      font-family: "Roboto Mono", monospace;
+    }
+
+    hr {
+      border: 0;
+      border-bottom: 2px solid black;
+      width: 100%;
+    }
+
+    h1 {
+      font-family: "Roboto Mono", monospace;
+      font-size: 40pt;
+      font-weight: 100;
+      margin: 10px;
+    }
+
+    h2 {
+      font-family: "Roboto Mono", monospace;
+      font-size: 20pt;
+      font-weight: 100;
+      margin: 0;
+    }
+
+    h3 {
+      font-family: "Roboto Mono", monospace;
+      font-size: 16pt;
+      font-weight: 100;
+      margin: 0;
+    }
+
+    a {
+      text-decoration: none;
+      color: blue;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+
+    a.clear {
+      color: black;
+    }
+
+    .flex-center {
+      display: flex;
+      flex-flow: column;
+      align-items: center;
+      width: 100%;
+    }
+
+    .flex-row {
+      font-family: "Roboto Mono", monospace;
+
+      display: flex;
+      flex-flow: row;
+      align-content: center;
+      justify-content: center;
+      width: 100%;
+    }
+
+    .nav-item {
+      color: black;
+      text-align: center;
+      text-transform: uppercase;
+      width: 25%;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="flex-center">
+    <h1>uprocd</h1>
+  </div>
+
+  <hr>
+
+  <div class="flex-row">
+    <a href="https://github.com/kirbyfan64/uprocd" class="nav-item">GitHub</a>
+    <a href="https://github.com/kirbyfan64/uprocd/issues" class="nav-item">Bugs</a>
+    <a href="https://discord.gg/UpUQdPD" class="nav-item">Discord</a>
+    <a href="uprocd.index.7.html" class="nav-item">Man pages</a>
+  </div>
+
+  <hr>
+
+  <p>
+    uprocd is a "process preloader" or "process cache" for Linux systems. It starts
+    a process (referred to as a <i>module</i>) in the background, then freezes it once
+    initialization is completed. When you ask uprocd to run that module, it forks it and
+    attaches the forked version to your terminal. This means that processes are only
+    initialized once, so you don't have to wait around after starting a process.</p>
+
+  <p>Want proof that it works?</p>
+
+  <pre><code>
+ ryan@DevPC-archLX  ~  /usr/bin/time -f 'Time elapsed: %E' ipython -h &gt; /dev/null
+Time elapsed: 0:00.60
+ ryan@DevPC-archLX  ~  /usr/bin/time -f 'Time elapsed: %E' u ipython -h &gt; /dev/null
+Time elapsed: 0:00.15
+  </code></pre>
+
+  <h2 id="getting-started"><a class="clear" href="#getting-started">Getting Started</a></h2>
+
+  <br>
+
+  <h3 id="requirements"><a class="clear" href="#requirements">Requirements</a></h3>
+
+  <p>You need:</p>
+
+  <ul>
+    <li>A C compiler.</li>
+    <li>
+      <a href="http://gittup.org/tup/">Tup</a> and
+      <a href="https://www.perl.org/">Perl</a> for building.</li>
+    <li>
+      A <a href="https://www.freedesktop.org/wiki/Software/systemd/">systemd</a>-powered
+      Linux system. uprocd itself only spawns daemons for each module and manages
+      communication with them. systemd is used for both managing the daemons (via
+      <a href="https://www.freedesktop.org/software/systemd/man/systemctl.html">
+        systemctl</a>) and internally used for communication (via
+      <a href="http://0pointer.net/blog/the-new-sd-bus-api-of-systemd.html">sd-bus</a>).
+      </li>
+    <li>
+      <a href="https://www.python.org/">CPython 3</a>. Although uprocd modules can be
+      written for any processes, the only currently included ones are for Python and
+      <a href="https://ipython.org/">IPython</a>. Therefore, if you want to actually be
+      able to try uprocd out, you'll need Python installed.</li>
+    <li>
+      <a href="https://rtomayko.github.io/ronn/">Ronn</a> if you want to build the man
+      pages. This is turn means <a href="https://www.ruby-lang.org/en/">Ruby</a> is
+      also required.</li>
+  </ul>
+
+  <h3 id="building"><a class="clear" href="#building">Downloading and Building</a></h3>
+
+  <p>Just run:</p>
+
+  <pre><code>
+$ git clone --recursive https://github.com/kirbyfan64/uprocd.git
+$ cd uprocd
+$ ./configure
+$ tup
+  </code></pre>
+
+  <p>Use <code>./configure -mode release</code> for a release build.</p>
+
+  <h3 id="basic-usage"><a class="clear" href="#basic-usage">Basic Usage</a></h3>
+
+  <br>
+
+  <pre><code>
+# Start the uprocd Python module. This will start Python in the background, then
+# freeze it until later.
+$ systemctl --user start uprocd@python
+# Have the module be automatically started at every boot.
+$ systemctl --user enable uprocd@python
+
+# Run Python via uprocd. This will fork the background process and bring the forked
+# one to the foreground.
+$ uprocctl run python -h
+# u is a shortcut for uprocctl run
+$ u python -h
+# upython is an included shortcut for u python
+$ upython -h
+
+# In fact, any symlink to uprocctl beginning with the letter u is a shortcut. e.g.
+# a symlink named uipython is a shortcut for uprocctl run ipython:
+$ uipython
+# Same as:
+$ u ipython
+# Same as:
+$ uprocctl run ipython
+  </code></pre>
+
+  <p>
+    For more information, see the man pages via <code>man uprocd.index</code>, or
+    <a href="uprocd.index.7.html">view them online</a>.</p>
+
+  <h3 id="extending"><a class="clear" href="#extending">Extending</a></h3>
+
+  <p>
+    Again, see the man pages for detailed information. If you want to get started,
+    check out
+    <a href="https://github.com/kirbyfan64/uprocd/tree/master/modules">the source code
+      for the both the Python modules and two basic examples</a>.
+
+  <h2 id="contributing"><a class="clear" href="#contributing">Contributing</a></h2>
+
+  <p>
+    Check out <a href="https://github.com/kirbyfan64/uprocd">the GitHub repo</a> for
+    the source code. Extra modules that are either really useful or really cool can
+    be suggested for inclusion.</p>
+
+  <p>Also be sure to file any bugs there!</p>
+</body>

@@ -11,10 +11,8 @@ SDS = build/sds.o
 !link = | $(SDS) |> ^ LINK %o^ @(CC) $(SDS) %f -o %o @(LDFLAGS) $(LOCAL_LDFLAGS) |>
 !linkso = | $(SDS) |> ^ LINKSO %o^ @(CC) $(SDS) -shared %f -o %o $(LDFLAGS) |>
 !ln = |> ^ LN %o^ ln -sf `basename %f` %o |>
-!cp = |> ^ COPY %f^ cp %f %o |>
+!cp = |> ^ COPY %f -> %o^ cp %f %o |>
 !man = | man/index.txt |> ^ RONN %f^ scripts/ronn.rb "`dirname "%o"`" %f |>
-#!sed = |> ^ SED MODS %f -> %o^ sed \
-#  's/u(1)/X(1)/g;s/uprocctl(1)/u(1)/g;s/X(1)/uprocctl(1)/g' %f > %o |>
 
 : sds/sds.c |> !cc |> build/sds.o
 
@@ -47,4 +45,6 @@ endif
 ifdef RONN
   : man/uprocctl.1.ronn |> !cp |> build/ronn/u.1.ronn
   : foreach man/*.ronn build/ronn/*.ronn |> !man |> build/man/%B | build/man/%B.html
+
+  : foreach web/index.html build/man/*.html |> !cp |> build/web/%B.html
 endif

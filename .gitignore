@@ -1,3 +1,4 @@
 build/
 .tup/
 tup.config
+.web

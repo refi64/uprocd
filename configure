@@ -132,6 +132,22 @@ __END__
 
 =head1 SYNOPSIS
 
-./configure [--help|-h] [--mode,-m=debug-asan|debug|release] [--python=yes|no|auto] [--docs=yes|no|auto]
+./configure [-help] [-mode=debug-asan|debug|release] [-python=yes|no|auto] [-docs=yes|no|auto]
+
+Options:
+
+  -help       Show this page.
+  -mode       Set the build mode (default is debug).
+                debug         Build with debug symbols.
+                debug-asan    Build with debug symbols and the address sanitizer.
+                release       Build in release mode.
+  -python     Whether or not to build the Python modules (default is auto).
+                yes           Always build the Python modules.
+                no            Don't build the Python modules.
+                auto          Automatically determine based on whether or not Python is installed.
+  -docs       Whether or not to build the man pages.
+                yes           Always build the man pages.
+                no            Don't build the man pages.
+                auto          Automatically determine based on whether or not Ronn is installed.
 
 =cut

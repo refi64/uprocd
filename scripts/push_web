@@ -1,0 +1,12 @@
+#!/bin/bash
+
+cd "`dirname "$0"`/.."
+[ -d .web ] || git clone --depth=1 -b gh-pages https://github.com/kirbyfan64/uprocd.git .web
+tup
+cd .web
+rm -rf *
+cp -r ../build/web/* .
+printf 'refi64.com' > CNAME
+git add .
+git commit -am "deploy on `date '+%Y-%m-%d-%H:%M:%S-UTC:%z'`"
+git push -u origin gh-pages
