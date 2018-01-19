@@ -9,4 +9,4 @@ just running it normally, since it's already been initialized.
 
 ## Want to learn more?
 
-[Check out the website!](https://uprocd.refi64.com)
+[Check out the website!](https://refi64.com/uprocd)
