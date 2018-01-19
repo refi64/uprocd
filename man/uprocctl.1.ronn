@@ -59,6 +59,13 @@ Run IPython via the ipython module:
 $ uprocctl run ipython
 ```
 
+Equivalent to above:
+
+```
+$ u ipython
+$ uipython
+```
+
 ## SEE ALSO
 
 uprocd.index(7), uprocd(7), systemctl(1), journalctl(1)

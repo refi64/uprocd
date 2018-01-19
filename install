@@ -55,7 +55,11 @@ if grep -q CONFIG_PYTHON=yes tup.config; then
   inst data build/modules/ipython.module "$prefix/share/uprocd/modules"
   inst data build/modules/_uprocd_modules.py "$prefix/share/uprocd/modules"
 
-  hasdocs && inst data build/man/python.module.7 "$prefix/share/man/man7" ||:
+  if hasdocs; then
+    inst data build/man/python.module.7 "$prefix/share/man/man7"
+    ln -sf "$prefix/share/man/man1/u.1" "$prefix/share/man/man1/upython.1"
+    ln -sf "$prefix/share/man/man1/u.1" "$prefix/share/man/man1/uipython.1"
+  fi
 fi
 
 hasdocs && for man in build/man/*.?; do
