@@ -28,16 +28,16 @@ uprocctl run python -h.
 
 `status`
 
-    Shows the status of the given uprocd module.
+> Shows the status of the given uprocd module.
 
 `run`
 
-    Forks the given uprocd module, connecting its standard I/O to the current terminal.
-    uprocctl will trace the module, exiting with the module's exit code. Any arguments
-    given will be passed down to the module.
+> Forks the given uprocd module, connecting its standard I/O to the current terminal.
+> uprocctl will trace the module, exiting with the module's exit code. Any arguments
+> given will be passed down to the module.
 
-    uprocctl will rename its process name to that specified by the module, or to the
-    module's own name if no process name was given.
+uprocctl will rename its process name to that specified by the module, or to the
+module's own name if no process name was given.
 
 ## EXAMPLES
 

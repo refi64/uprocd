@@ -53,24 +53,24 @@ which must be the very first section in the file.
 
 `ProcessName=<string>`
 
-    The process name. uprocctl will rename itself to this name when running a module.
+> The process name. uprocctl will rename itself to this name when running a module.
 
 `Description=<string>`
 
-    A description for the module.
+> A description for the module.
 
 [NativeModule] sections may specify the following properties:
 
 `NativeLib=<string>`
 
-    By default, uprocd will look for a .so file with the same name as the .module file.
-    This will change the name of the .so file to look for.
+> By default, uprocd will look for a .so file with the same name as the .module file.
+> This will change the name of the .so file to look for.
 
 A [DerivedModule] section `must` specify the following properties:
 
 `Base=<string>`
 
-    The name of the native module that this derived module is extending.
+> The name of the native module that this derived module is extending.
 
 ## MODULE PROPERTIES
 
@@ -80,19 +80,19 @@ and each value will be the type of property. The following types are supported:
 
 `string`
 
-    A string value.
+> A string value.
 
 `number`
 
-    A number value. This may be either a floating point number or an integer.
+> A number value. This may be either a floating point number or an integer.
 
 `list string`
 
-    A space-seperated list of strings.
+> A space-seperated list of strings.
 
 `list number`
 
-    A space-seperated list of numbers.
+> A space-seperated list of numbers.
 
 In additions, the module should declare default values for all properties that a
 derived module does not have to specify. This is done in the [Defaults] section. Each
