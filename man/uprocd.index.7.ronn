@@ -2,7 +2,7 @@
 
 ## RECOMMENDATIONS
 
-If you're just starting out, read `uprocd`(7) and `uprocctl`(1), which should send you`
+If you're just starting out, read `uprocd`(7) and `uprocctl`(1), which should send you
 well on your way.
 
 ## BASIC USAGE

@@ -1,0 +1,31 @@
+.mp {
+  max-width: initial;
+  padding: 1em 2em;
+  margin-left: 4em;
+}
+
+.mp h2 {
+  margin-left: -4em;
+}
+
+pre {
+  overflow-x: auto;
+}
+
+.mp > p, .mp > pre, .mp > ul, .mp > ol, .mp > dl {
+  margin-left: 0;
+}
+
+@media only screen and (max-width: 768px) {
+  .mp {
+    margin-left: 1em;
+  }
+
+  .mp h2 {
+    margin-left: -1em;
+  }
+
+  #SEE-ALSO + p {
+    text-align: initial;
+  }
+}

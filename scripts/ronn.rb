@@ -4,6 +4,8 @@
 # - Uses a *correct* basename function.
 # - Writes outputs to the specified output directory.
 
+ENV['RONN_STYLE'] = "#{File.dirname(__FILE__)}/../web"
+
 require 'ronn'
 
 class Document < Ronn::Document
@@ -13,6 +15,12 @@ class Document < Ronn::Document
     r
   end
 
+  def to_html
+    super
+      .gsub('<head>', "<head>\n  <meta name='viewport' content='width=device-width'>")
+      .gsub("<li class='tc'></li>", '')
+  end
+
   def name
     basename.gsub /\.\d\.$/, ''
   end
@@ -20,15 +28,13 @@ class Document < Ronn::Document
   def to_html_fragment(wrap_class=nil)
     names = data[1..data =~ /\n/].split('--', 2)[0].strip.gsub("(#{section})", '')
 
-    result = super
-    result.gsub! "#{name}</code> - ", "#{names}</code> - "
-    result
+    super.gsub "#{name}</code> - ", "#{names}</code> - " \
   end
 end
 
 outdir = ARGV.shift
 
-docs = ARGV.map{|arg| Document.new arg }
+docs = ARGV.map{|arg| Document.new arg, styles: ['man-extra'] }
 docs.each do |doc|
   ['html', 'roff'].each do |format|
     File.open("#{outdir}/#{File.basename doc.path_for format}", 'w') do |fp|
