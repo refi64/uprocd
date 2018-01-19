@@ -29,7 +29,7 @@ inst() {
 }
 
 hasdocs() {
-  grep -q CONFIG_RONN= tup.config
+  grep -q CONFIG_RUBY= tup.config
   return $?
 }
 
