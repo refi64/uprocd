@@ -1,7 +1,14 @@
 #!/usr/bin/env perl
 
+use File::Temp qw/tempfile/;
 use Getopt::Long;
 use Pod::Usage;
+
+sub clean {
+  my $ref = shift;
+  $$ref =~ s/\s+/ /g;
+  $$ref =~ s/^\s+|\s+$//g;
+}
 
 sub which {
   my $prog = shift;
@@ -11,6 +18,24 @@ sub which {
     return "$dir/$prog" if -X "$dir/$prog";
   }
   return undef;
+}
+
+sub c_test {
+  my $cc = shift;
+  my $cflags = shift;
+  my $ldflags = shift;
+  my $src = shift;
+
+  clean \$cflags;
+  clean \$ldflags;
+
+  my ($fh, $filename) = tempfile(UNLINK => 1);
+  print $fh $src;
+  close $fh;
+
+  my $ret = system "$cc -xc $cflags '$filename' -o - -lJudy $ldflags > /dev/null";
+  unlink $filename;
+  return $ret == 0;
 }
 
 sub error {
@@ -58,6 +83,11 @@ print "ok\n";
 $cflags .= $systemd_cflags;
 $ldflags .= $systemd_ldflags;
 
+print 'Checking for Judy... ';
+my $judy = c_test $cc, $cflags, $ldflags, "#include <Judy.h>\nint main() { return 0; }";
+fail 'Failed to compile a program requiring Judy.' if !$judy;
+print "ok\n";
+
 if ($python eq 'auto') {
   print 'Checking for python3-config... ';
   $python = defined(which($ENV{PYTHON_CONFIG}) || which('python3-config')) ? 'yes' : 'no';
@@ -86,10 +116,8 @@ if ($mode eq 'debug') {
   $cflags .= ' -fsanitize=address -g ';
 }
 
-$cflags =~ s/\s+/ /g;
-$cflags =~ s/^\s+|\s+$//g;
-$ldflags =~ s/\s+/ /g;
-$ldflags =~ s/^\s+|\s+$//g;
+clean \$cflags;
+clean \$ldflags;
 
 print "Writing tup.config... ";
 
