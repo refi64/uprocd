@@ -33,7 +33,7 @@ sub c_test {
   print $fh $src;
   close $fh;
 
-  my $ret = system "$cc -xc $cflags '$filename' -o - -lJudy $ldflags > /dev/null";
+  my $ret = system "$cc -xc $cflags '$filename' -o /dev/stdout $ldflags > /dev/null";
   unlink $filename;
   return $ret == 0;
 }
@@ -84,7 +84,8 @@ $cflags .= $systemd_cflags;
 $ldflags .= $systemd_ldflags;
 
 print 'Checking for Judy... ';
-my $judy = c_test $cc, $cflags, $ldflags, "#include <Judy.h>\nint main() { return 0; }";
+my $judy = c_test $cc, $cflags, "$ldflags -lJudy",
+                  "#include <Judy.h>\nint main() { return 0; }";
 fail 'Failed to compile a program requiring Judy.' if !$judy;
 print "ok\n";
 
