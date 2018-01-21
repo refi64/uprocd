@@ -9,7 +9,7 @@ SDS = build/sds.o
 
 !cc = |> ^ CC %f^ @(CC) @(CFLAGS) $(LOCAL_CFLAGS) -c %f -o %o |>
 !link = | $(SDS) |> ^ LINK %o^ @(CC) $(SDS) %f -o %o @(LDFLAGS) $(LOCAL_LDFLAGS) |>
-!linkso = | $(SDS) |> ^ LINKSO %o^ @(CC) $(SDS) -shared %f -o %o $(LDFLAGS) |>
+!linkso = | $(SDS) |> ^ LINKSO %o^ @(CC) $(SDS) -shared %f -o %o @(LDFLAGS) |>
 !ln = |> ^ LN %o^ ln -sf `basename %f` %o |>
 !cp = |> ^ COPY %f -> %o^ cp %f %o |>
 
@@ -37,6 +37,14 @@ ifeq (@(PYTHON),yes)
   : modules/python/python.c |> !cc |> build/modules.o/python.o
   : modules/python/_uprocd_modules.py |> !cp |> build/modules/%b
   : modules/python/ipython.module |> !cp |> build/modules/%b
+endif
+
+ifeq (@(RUBY),yes)
+  : build/uprocctl |> !ln |> build/uruby
+
+  : modules/ruby/ruby.module |> !cp |> build/modules/%b
+  : modules/ruby/ruby.c |> !cc |> build/modules.o/ruby.o
+  : modules/ruby/_uprocd_requires.rb |> !cp |> build/modules/%b
 endif
 
 : foreach build/modules.o/*.o |> !linkso |> build/modules/%B.so

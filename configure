@@ -142,6 +142,7 @@ if ($mode eq 'debug') {
   $cflags .= ' -O2 ';
 } elsif ($mode eq 'debug-asan') {
   $cflags .= ' -fsanitize=address -g ';
+  $ldflags .= ' -fsanitize=address ';
 }
 
 clean \$cflags;
