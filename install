@@ -44,6 +44,8 @@ inst exec build/uprocctl "$prefix/bin"
 inst exec build/u "$prefix/bin"
 inst exec build/uprocd "$prefix/share/uprocd/bin"
 
+inst data api/uprocd.h "$prefix/include"
+
 inst data systemd/uprocd@.service "$prefix/lib/systemd/user"
 
 if grep -q CONFIG_PYTHON=yes tup.config; then
