@@ -38,6 +38,14 @@ sub c_test {
   return $ret == 0;
 }
 
+sub pkg_config {
+  my $pkg = shift;
+  my $cflags = `pkg-config --cflags $pkg 2>/dev/null`;
+  my $ldflags = `pkg-config --libs $pkg 2>/dev/null`;
+  return undef if length($cflags) == 0 || length($ldflags) == 0;
+  return (1, $cflags, $ldflags);
+}
+
 sub error {
   my $msg = shift;
   print "$msg\n";
@@ -56,10 +64,11 @@ my $ldflags = $ENV{LDFLAGS} || '';
 my $help = 0;
 my $mode = 'debug';
 my $python = 'auto';
+my $ruby = 'auto';
 my $docs = 'auto';
 
 GetOptions('help|h' => \$help, 'mode|m=s' => \$mode, 'python=s' => \$python,
-           'docs=s' => \$docs);
+           'ruby=s' => \$ruby, 'docs=s' => \$docs);
 pod2usage(1) if $help;
 
 error "Invalid build mode: $mode." if $mode !~ m/debug-asan|debug|release/;
@@ -75,9 +84,8 @@ fail 'Failed to locate C compiler.' if !defined($cc);
 print "$cc\n";
 
 print 'Finding libsystemd... ';
-my $systemd_cflags = `pkg-config --cflags libsystemd 2>/dev/null`;
-my $systemd_ldflags = `pkg-config --libs libsystemd 2>/dev/null`;
-fail 'Failed to detect libsystemd.' if length($systemd_cflags) == 0 || length($systemd_ldflags) == 0;
+my ($systemd_success, $systemd_cflags, $systemd_ldflags) = pkg_config 'libsystemd';
+fail 'Failed to detect libsystemd.' if !$systemd_success;
 print "ok\n";
 
 $cflags .= $systemd_cflags;
@@ -100,13 +108,32 @@ if ($python eq 'auto') {
   }
 }
 
-my $ruby;
+my $rubybin;
 
-if ($docs eq 'auto') {
+if ($ruby eq 'auto' || $docs eq 'auto') {
   print 'Checking for Ruby... ';
-  $ruby = which($ENV{RUBY}) || which('ruby');
-  $docs = defined($ruby) ? 'yes' : 'no';
-  print "$docs\n";
+  $rubybin = which($ENV{RUBY}) || which('ruby');
+  my $status = defined($rubybin) ? 'yes' : 'no';
+  print "$status\n";
+  $ruby = $status if $ruby eq 'auto';
+  $docs = $status if $docs eq 'auto';
+}
+
+if ($ruby eq 'yes') {
+  print 'Checking for Ruby pkg-config files... ';
+  my ($rubyver) = `$rubybin --version` =~ /^ruby (\d+\.\d+)/;
+  goto ruby_failed if !defined($rubyver);
+  my ($ruby_success, $ruby_cflags, $ruby_ldflags) = pkg_config "ruby-$rubyver";
+  goto ruby_failed if !$ruby_success;
+
+  $cflags .= $ruby_cflags;
+  $ldflags .= $ruby_ldflags;
+  goto ruby_end;
+
+  ruby_failed:
+  $ruby = 'no';
+  ruby_end:
+  print "$ruby\n";
 }
 
 if ($mode eq 'debug') {
@@ -130,8 +157,10 @@ print $fh "CONFIG_LDFLAGS=$ldflags\n";
 print $fh "CONFIG_MODE=$mode\n";
 
 print $fh "CONFIG_PYTHON=$python\n";
+print $fh "CONFIG_RUBY=$ruby\n";
 
-print $fh "CONFIG_RUBY=$ruby\n" if defined($ruby);
+print $fh "CONFIG_RUBY_BIN=$rubybin\n" if defined($rubybin);
+print $fh "CONFIG_DOCS=yes\n" if $docs eq 'yes';
 
 close $fh;
 
@@ -146,13 +175,14 @@ print "Build mode: $mode\n";
 print "C compiler: $cc\n";
 print "C compiler flags: $cflags\n";
 print "C compiler flags: $ldflags\n";
-print "Build docs: $docs@{[defined($ruby) ? (' (using Ruby: ' . $ruby . ')') : '']}\n";
+print "Build docs: $docs@{[defined($rubybin) ? (' (using Ruby: ' . $rubybin . ')') : '']}\n";
 print "\n";
 print "===================\n";
 print "===== Modules =====\n";
 print "===================\n";
 print "\n";
 print "Python module: $python\n";
+print "Ruby module: $ruby\n";
 print "\n";
 print "Run 'tup' to build.\n";
 print "\n";
@@ -161,7 +191,7 @@ __END__
 
 =head1 SYNOPSIS
 
-./configure [-help] [-mode=debug-asan|debug|release] [-python=yes|no|auto] [-docs=yes|no|auto]
+./configure [-help] [-mode=debug-asan|debug|release] [-python=auto|no] [-ruby=auto|no] [-docs=auto|no]
 
 Options:
 
@@ -173,10 +203,14 @@ Options:
   -python     Whether or not to build the Python modules (default is auto).
                 yes           Always build the Python modules.
                 no            Don't build the Python modules.
-                auto          Automatically determine based on whether or not Python is installed.
+                auto          Automatically determine based on whether or not Python is installed
+  -ruby       Whether or not to build the Python modules (default is auto).
+                yes           Always build the Ruby modules.
+                no            Don't build the Ruby modules.
+                auto          Automatically determine based on whether or not Ruby is installed.
   -docs       Whether or not to build the man pages.
                 yes           Always build the man pages.
                 no            Don't build the man pages.
-                auto          Automatically determine based on whether or not Ronn is installed.
+                auto          Automatically determine based on whether or not Ruby is installed.
 
 =cut

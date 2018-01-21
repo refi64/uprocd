@@ -41,8 +41,8 @@ endif
 
 : foreach build/modules.o/*.o |> !linkso |> build/modules/%B.so
 
-ifdef RUBY
-  !man = | man/index.txt |> ^ RONN %f^ @(RUBY) scripts/ronn.rb "`dirname "%o"`" %f |>
+ifdef DOCS
+  !man = | man/index.txt |> ^ RONN %f^ @(RUBY_BIN) scripts/ronn.rb "`dirname "%o"`" %f |>
 
   : man/uprocctl.1.ronn |> !cp |> build/ronn/u.1.ronn
   : foreach man/*.ronn build/ronn/*.ronn |> !man |> build/man/%B | build/man/%B.html
