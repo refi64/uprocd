@@ -115,7 +115,9 @@ UPROCD_EXPORT void uprocd_context_enter(uprocd_context *ctx) {
     setenv(p[0], p[1], 1);
   }
 
-  chdir(ctx->cwd);
+  if (chdir(ctx->cwd) == -1) {
+    FAIL("WARNING: Error chdir into new cwd %S: %s", ctx->cwd, strerror(errno));
+  }
 
   close(0);
   close(1);
