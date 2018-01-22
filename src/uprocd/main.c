@@ -96,11 +96,11 @@ config *load_config(const char *module, sds *module_dir) {
   return cfg;
 }
 
-config *resolve_derived_config(config *cfg) {
+config *resolve_derived_config(config *cfg, sds *module_dir) {
   INFO("Resolving derived config...");
 
   INFO("Locating parent %S.", cfg->derived.base);
-  config *base = load_config(cfg->derived.base, NULL);
+  config *base = load_config(cfg->derived.base, module_dir);
   if (base == NULL) {
     config_free(cfg);
     return NULL;
@@ -211,7 +211,7 @@ int main(int argc, char **argv) {
   }
 
   if (cfg->kind == CONFIG_DERIVED_MODULE) {
-    cfg = resolve_derived_config(cfg);
+    cfg = resolve_derived_config(cfg, &module_dir);
     if (cfg == NULL) {
       return 1;
     }
