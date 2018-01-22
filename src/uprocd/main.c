@@ -36,7 +36,7 @@ config *load_config(const char *module, sds *module_dir) {
   sds xdg_config_home = get_xdg_config_home();
 
   static const char *search_paths[] = {
-    "build/modules",
+    /* "build/modules", */
     "/usr/share/uprocd/modules",
     "/usr/local/share/uprocd/modules",
     "@/uprocd/modules",
