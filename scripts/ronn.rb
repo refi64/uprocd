@@ -36,13 +36,17 @@ class Document < Ronn::Document
   end
 end
 
-outdir = ARGV.shift
+dstman = ARGV.shift
+dsthtml = ARGV.shift
 
-docs = ARGV.map{|arg| Document.new arg, styles: ['man-extra'] }
+dstdirs = {html: dsthtml, roff: dstman}
+
+docs = ARGV.map{|arg| Document.new arg, styles: ['man-extra']}
 docs.each do |doc|
-  ['html', 'roff'].each do |format|
-    File.open("#{outdir}/#{File.basename doc.path_for format}", 'w') do |fp|
-      fp.write doc.convert format
+  [:html, :roff].each do |format|
+    dst = "#{dstdirs[format]}/#{File.basename doc.path_for format.to_s}"
+    File.open(dst, 'w') do |fp|
+      fp.write doc.convert format.to_s
     end
   end
 end

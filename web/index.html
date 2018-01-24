@@ -145,8 +145,8 @@ Time elapsed: 0:00.15
   <ul>
     <li>A C compiler.</li>
     <li>
-      <a href="http://gittup.org/tup/">Tup</a> and
-      <a href="https://www.perl.org/">Perl</a> for building.</li>
+      <a href="https://python.org/">Python 3</a> and
+      <a href="https://github.com/felix-lang/fbuild">Fbuild</a> for building.</li>
     <li><a href="http://judy.sourceforge.net/">Judy arrays</a>.</li>
     <li>
       A <a href="https://www.freedesktop.org/wiki/Software/systemd/">systemd</a>-powered
@@ -157,13 +157,14 @@ Time elapsed: 0:00.15
       <a href="http://0pointer.net/blog/the-new-sd-bus-api-of-systemd.html">sd-bus</a>).
       </li>
     <li>
-      <a href="https://www.python.org/">CPython 3</a> is require if you want to build the
-      Python and <a href="https://ipython.org/">IPython</a> modules for uprocd.</li>
+      <b>Optional:</b> <a href="https://www.python.org/">CPython 3 development files</a>
+      if you want to build the Python and <a href="https://ipython.org/">IPython</a>
+      modules.</li>
     <li>
-      <a href="https://www.ruby-lang.org/en/">Ruby</a> is required if you want to build
-      the Ruby module or the man pages. (The tool used to convert the Markdown sources
-      into Roff is <a href="https://rtomayko.github.io/ronn/">Ronn</a>, which is written
-      in Ruby.)</li>
+      <b>Optional:</b> <a href="https://www.ruby-lang.org/en/">Ruby</a> for building
+      the Ruby module and/or the man pages. (The tool used to convert the Markdown
+      sources into Roff is <a href="https://rtomayko.github.io/ronn/">Ronn</a>, which
+      is written in Ruby.)</li>
   </ul>
 
   <h3 id="building"><a class="clear" href="#building">Downloading and Building</a></h3>
@@ -172,13 +173,11 @@ Time elapsed: 0:00.15
 
   <pre><code>
 $ git clone --recursive https://github.com/kirbyfan64/uprocd.git
-$ cd uprocd
-$ ./configure
-$ tup
-$ sudo ./install
+$ fbuild
+$ sudo fbuild install
   </code></pre>
 
-  <p>Use <code>./configure -mode release</code> for a release build.</p>
+  <p>Use <code>fbuild --release</code> for a release build.</p>
 
   <h3 id="basic-usage"><a class="clear" href="#basic-usage">Basic Usage</a></h3>
 

@@ -1,4 +1,3 @@
 build/
-.tup/
-tup.config
-.web
+__pycache__/
+.web/
