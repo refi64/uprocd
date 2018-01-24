@@ -228,7 +228,7 @@ def build_module(ctx, module, *, rec, uprocctl):
 
 def build(ctx):
     rec = _configure(ctx, print_=True)
-    ctx.install_prefix = ctx.options.prefix
+    ctx.install_prefix = Path(ctx.options.prefix)
 
     sds = rec.c.static.build_lib('sds', ['sds/sds.c'])
 
@@ -249,6 +249,7 @@ def build(ctx):
     uprocd = rec.c.static.build_exe('uprocd', Path.glob('src/uprocd/*.c'), **common_kw)
     uprocctl = rec.c.static.build_exe('uprocctl', Path.glob('src/uprocctl/*.c'),
                                       **common_kw)
+    u = symlink(ctx, uprocctl, 'u')
 
     modules = [
         Module(name='python', pkg=rec.python3, sources='python.c', others=['ipython'],
@@ -267,17 +268,31 @@ def build(ctx):
     u_man = copy(ctx, 'man/uprocctl.1.ronn', 'ronn/u.1.ronn')
     page_out = ctx.scheduler.map(partial(rec.ronn.convert, mandir='man', htmldir='web'),
                                  [u_man] + Path.glob('man/*.ronn'))
+    u_man_out = page_out[0]
+
     copy(ctx, 'web/index.html', 'web')
 
     ctx.install(uprocd, 'bin')
     ctx.install(uprocctl, 'bin')
+    ctx.install(u, 'bin')
 
-    for output in module_outputs:
+    ctx.install('systemd/uprocd@.service', 'lib/systemd/user')
+
+    for i, output in enumerate(module_outputs):
+        if output is None:
+            man = '%s.module' % modules[i].name
+            page_out = [page for page in page_out \
+                        if page.man.basename().replaceext('') != man]
+            continue
+
         for bin in output.binaries:
             ctx.install(bin, 'bin')
+            page_out.append(Record(man=u_man_out.man, rename='%s.1' % bin.basename()))
         for data in output.data:
             ctx.install(data, 'share/uprocd/modules')
 
     for page in page_out:
+        rename = page.get('rename')
         section = page.man.ext.lstrip('.')
-        ctx.install(page.man, 'share/man/man%s' % section)
+
+        ctx.install(page.man, 'share/man/man%s' % section, rename=rename)
