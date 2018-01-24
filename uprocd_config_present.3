@@ -1,0 +1,26 @@
+.\" generated with Ronn/v0.7.3
+.\" http://github.com/rtomayko/ronn/tree/0.7.3
+.
+.TH "UPROCD_CONFIG_PRESENT" "3" "January 2018" "" ""
+.
+.SH "NAME"
+\fBuprocd_config_present\fR \- Determine if the given property is present
+.
+.SH "SYNOPSIS"
+.
+.nf
+
+#include <uprocd\.h>
+
+UPROCD_EXPORT int uprocd_config_present(const char *key);
+.
+.fi
+.
+.SH "DESCRIPTION"
+This function will check if the given key is present in the module\'s properties\.
+.
+.SH "RETURN VALUE"
+1 if it is present, 0 if it isn\'t\.
+.
+.SH "SEE ALSO"
+uprocd\.index(7), uprocd\.h(3)

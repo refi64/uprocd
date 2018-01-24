@@ -1,0 +1,65 @@
+.\" generated with Ronn/v0.7.3
+.\" http://github.com/rtomayko/ronn/tree/0.7.3
+.
+.TH "UPROCD_CONFIG_STRING" "3" "January 2018" "" ""
+.
+.SH "NAME"
+\fBuprocd_config_string\fR \- Return the string at the given property
+.
+.SH "SYNOPSIS"
+.
+.nf
+
+#include <uprocd\.h>
+
+UPROCD_EXPORT const char * uprocd_config_string(const char *key);
+.
+.fi
+.
+.SH "DESCRIPTION"
+This function will retrieve the string at the given property\. To retrieve a string from a list, use \fBuprocd_config_string_at\fR(3)\.
+.
+.SH "RETURN VALUE"
+The string value, or NULL if it is not present\. It is undefined to call this function on a non\-string value\.
+.
+.SH "EXAMPLE"
+Module config:
+.
+.IP "" 4
+.
+.nf
+
+[NativeModule]
+
+[Properties]
+Present=string
+NotPresent=string
+
+[Defaults]
+Present=test
+.
+.fi
+.
+.IP "" 0
+.
+.P
+Source code:
+.
+.IP "" 4
+.
+.nf
+
+const char *s;
+
+s = uprocd_config_string("Present");
+printf("Present: %s\en", s); // Present: test
+
+s = uprocd_config_string("NotPresent");
+printf("NotPresent: %s\en", s); // NotPresent: (NULL) (if your libc doesn\'t crash)
+.
+.fi
+.
+.IP "" 0
+.
+.SH "SEE ALSO"
+uprocd\.index(7), uprocd\.h(3), uprocd_config_string_at(3)

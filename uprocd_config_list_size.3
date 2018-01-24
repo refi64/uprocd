@@ -1,0 +1,65 @@
+.\" generated with Ronn/v0.7.3
+.\" http://github.com/rtomayko/ronn/tree/0.7.3
+.
+.TH "UPROCD_CONFIG_LIST_SIZE" "3" "January 2018" "" ""
+.
+.SH "NAME"
+\fBuprocd_config_list_size\fR \- Return the size of the list at the given property
+.
+.SH "SYNOPSIS"
+.
+.nf
+
+#include <uprocd\.h>
+
+UPROCD_EXPORT int uprocd_config_list_size(const char *key);
+.
+.fi
+.
+.SH "DESCRIPTION"
+This function will retrieve the size of the list at the given key in the module\'s properties\.
+.
+.SH "RETURN VALUE"
+The list\'s length, or \-1 if it is not present\. It is undefined to call this function on a non\-list value\.
+.
+.SH "EXAMPLE"
+Module config:
+.
+.IP "" 4
+.
+.nf
+
+[NativeModule]
+
+[Properties]
+Present=list string
+NotPresent=list string
+
+[Defaults]
+Present=a b c
+.
+.fi
+.
+.IP "" 0
+.
+.P
+Source code:
+.
+.IP "" 4
+.
+.nf
+
+int len;
+
+len = uprocd_config_list_size("Present");
+printf("Size of Present: %d\en", len); // Size of Present: 3
+
+len = uprocd_config_list_size("NotPresent");
+printf("Size of NotPresent: %d\en", len); // Size of NotPresent: \-1
+.
+.fi
+.
+.IP "" 0
+.
+.SH "SEE ALSO"
+uprocd\.index(7), uprocd\.h(3), uprocd_config_string_at(3), uprocd_config_number_at(3)

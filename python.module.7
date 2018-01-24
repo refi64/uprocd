@@ -1,0 +1,55 @@
+.\" generated with Ronn/v0.7.3
+.\" http://github.com/rtomayko/ronn/tree/0.7.3
+.
+.TH "PYTHON\.MODULE" "7" "January 2018" "" ""
+.
+.SH "NAME"
+\fBpython\.module\fR \- The uprocd Python module
+.
+.SH "SYNOPSIS"
+python\.module
+.
+.SH "DESCRIPTION"
+This is the Python native module for uprocd\.
+.
+.SH "PROPERTIES"
+\fBPreload=<string>\fR
+.
+.IP "" 4
+.
+.nf
+
+Code to run during the initialization phase\.
+.
+.fi
+.
+.IP "" 0
+.
+.P
+\fBRun=<string>\fR
+.
+.IP "" 4
+.
+.nf
+
+Code to run when the module is forked\.
+.
+.fi
+.
+.IP "" 0
+.
+.SH "EXAMPLE"
+.
+.nf
+
+[DerivedModule]
+Base=python
+# This code is to initialize the module\.
+Preload=import IPython
+# This will be called when the module is run\.
+Run=
+  from IPython import start_ipython
+  sys\.exit(start_ipython())
+.
+.fi
+

@@ -1,0 +1,71 @@
+.\" generated with Ronn/v0.7.3
+.\" http://github.com/rtomayko/ronn/tree/0.7.3
+.
+.TH "UPROCD_CONFIG_NUMBER_AT" "3" "January 2018" "" ""
+.
+.SH "NAME"
+\fBuprocd_config_number_at\fR \- Return the number at the given index of a list
+.
+.SH "SYNOPSIS"
+.
+.nf
+
+#include <uprocd\.h>
+
+UPROCD_EXPORT double uprocd_config_number_at(const char *list, int index);
+.
+.fi
+.
+.SH "DESCRIPTION"
+This function will retrieve the number at the given index of the given list\. To retrieve a number property, use \fBuprocd_config_number\fR(3)\.
+.
+.SH "RETURN VALUE"
+The number\'s value, or 0 if the list is not present or index is invalid\. It is undefined to call this function on a non\-number list value\.
+.
+.P
+To distinguist between 0 values and non\-present lists or invalid indexes, use \fBuprocd_config_present\fR(3) and \fBuprocd_config_list_size\fR(3)\.
+.
+.SH "EXAMPLE"
+Module config:
+.
+.IP "" 4
+.
+.nf
+
+[NativeModule]
+
+[Properties]
+Present=list number
+NotPresent=list number
+
+[Defaults]
+Present=10 20 30
+.
+.fi
+.
+.IP "" 0
+.
+.P
+Source code:
+.
+.IP "" 4
+.
+.nf
+
+double num;
+
+num = uprocd_config_number_at("Present", 0);
+printf("Present[0]: %d\en", num); // Present[0]: 10
+
+num = uprocd_config_number_at("Present", 20);
+printf("Present[20]: %d\en", num); // Present[20]: 0
+
+num = uprocd_config_number_at("NotPresent", 0);
+printf("NotPresent[0]: %d\en", num); // NotPresent[0]: 0
+.
+.fi
+.
+.IP "" 0
+.
+.SH "SEE ALSO"
+uprocd\.index(7), uprocd\.h(3), uprocd_config_present(3), uprocd_config_list_size(3), uprocd_config_number(3)

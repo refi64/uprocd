@@ -1,0 +1,68 @@
+.\" generated with Ronn/v0.7.3
+.\" http://github.com/rtomayko/ronn/tree/0.7.3
+.
+.TH "UPROCD_CONFIG_STRING_AT" "3" "January 2018" "" ""
+.
+.SH "NAME"
+\fBuprocd_config_string_at\fR \- Return the string at the given index of a list
+.
+.SH "SYNOPSIS"
+.
+.nf
+
+#include <uprocd\.h>
+
+UPROCD_EXPORT const char * uprocd_config_string_at(const char *list, int index);
+.
+.fi
+.
+.SH "DESCRIPTION"
+This function will retrieve the string at the given index of the given list\. To retrieve a string property, use \fBuprocd_config_string\fR(3)\.
+.
+.SH "RETURN VALUE"
+The string value, or NULL if the list is not present or index is invalid\. It is undefined to call this function on a non\-string list value\.
+.
+.SH "EXAMPLE"
+Module config:
+.
+.IP "" 4
+.
+.nf
+
+[NativeModule]
+
+[Properties]
+Present=list string
+NotPresent=list string
+
+[Defaults]
+Present=first second third
+.
+.fi
+.
+.IP "" 0
+.
+.P
+Source code:
+.
+.IP "" 4
+.
+.nf
+
+const char *s;
+
+s = uprocd_config_string_at("Present", 0);
+printf("Present[0]: %s\en", s); // Present[0]: first
+
+s = uprocd_config_string_at("Present", 20);
+printf("Present[20]: %s\en", s); // Present[20]: 0
+
+s = uprocd_config_string_at("NotPresent", 0);
+printf("NotPresent[0]: %s\en", s); // NotPresent[0]: 0
+.
+.fi
+.
+.IP "" 0
+.
+.SH "SEE ALSO"
+uprocd\.index(7), uprocd\.h(3), uprocd_config_string_at(3)
