@@ -2,7 +2,7 @@
 
 cd "`dirname "$0"`/.."
 [ -d .web ] || git clone --depth=1 -b gh-pages https://github.com/kirbyfan64/uprocd.git .web
-tup
+fbuild
 cd .web
 rm -rf *
 cp -r ../build/web/* .

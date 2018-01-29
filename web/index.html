@@ -124,10 +124,16 @@
   <p>Want proof that it works?</p>
 
   <pre><code>
+# IPython
  ryan@DevPC-archLX  ~  /usr/bin/time -f 'Time elapsed: %E' ipython -h &gt; /dev/null
 Time elapsed: 0:00.60
  ryan@DevPC-archLX  ~  /usr/bin/time -f 'Time elapsed: %E' u ipython -h &gt; /dev/null
 Time elapsed: 0:00.15
+# Mypy
+ ryan@DevPC-archLX  ~  /usr/bin/time -f 'Time elapsed: %E' mypy -h &gt; /dev/null
+Time elapsed: 0:00.52
+ ryan@DevPC-archLX  ~  /usr/bin/time -f 'Time elapsed: %E' umypy -h &gt; /dev/null
+Time elapsed: 0:00.11
   </code></pre>
 
   <p>
