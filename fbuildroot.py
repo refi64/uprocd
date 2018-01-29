@@ -252,8 +252,9 @@ def build(ctx):
     u = symlink(ctx, uprocctl, 'u')
 
     modules = [
-        Module(name='python', pkg=rec.python3, sources='python.c', others=['ipython'],
-               files=['_uprocd_modules.py'], links=['upython', 'uipython']),
+        Module(name='python', pkg=rec.python3, sources='python.c',
+               others=['ipython', 'mypy'], files=['_uprocd_modules.py'],
+               links=['upython', 'uipython', 'umypy']),
         Module(name='ruby', pkg=rec.ruby, sources='ruby.c', others=[],
                files=['_uprocd_requires.rb'], links=['uruby']),
     ]
