@@ -7,4 +7,4 @@ BusName=com.refi64.uprocd.modules.%I
 ExecStart=/usr/share/uprocd/bin/uprocd + "%I"
 
 [Install]
-WantedBy=multi-user.target
+WantedBy=default.target
