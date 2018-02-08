@@ -116,7 +116,7 @@ UPROCD_EXPORT void uprocd_context_enter(uprocd_context *ctx) {
   }
 
   if (chdir(ctx->cwd) == -1) {
-    FAIL("WARNING: Error chdir into new cwd %S: %s", ctx->cwd, strerror(errno));
+    FAIL("WARNING: chdir into new cwd %S failed: %s", ctx->cwd, strerror(errno));
   }
 
   close(0);
@@ -126,7 +126,13 @@ UPROCD_EXPORT void uprocd_context_enter(uprocd_context *ctx) {
   dup2(ctx->fds[1], 1);
   dup2(ctx->fds[2], 2);
 
-  setsid();
+  if (setsid() == -1) {
+    FAIL("WARNING: setsid failed: %s", strerror(errno));
+  }
+
+  if (setpgid(getpid(), getpid()) == -1) {
+    FAIL("WARNING: setpgid failed: %s", strerror(errno));
+  }
 }
 
 sds * convert_env_to_api_format(table *penv) {
@@ -167,7 +173,6 @@ int prepare_context_and_fork(int argc, char **argv, table *env, char *cwd, int *
     return -errno;
   } else if (child == 0) {
     prctl(PR_SET_PTRACER, pid, 0, 0);
-    prctl(PR_SET_PDEATHSIG, SIGKILL, 0, 0);
     ioctl(0, TIOCSCTTY, 1);
 
     write(wait_for_set_ptracer[1], "", 1);

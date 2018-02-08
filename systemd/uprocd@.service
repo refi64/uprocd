@@ -5,6 +5,8 @@ Description=The uprocd daemon for %I
 Type=dbus
 BusName=com.refi64.uprocd.modules.%I
 ExecStart=/usr/share/uprocd/bin/uprocd + "%I"
+KillMode=process
+Restart=Always
 
 [Install]
 WantedBy=default.target
