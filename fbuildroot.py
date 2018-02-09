@@ -42,7 +42,7 @@ class RonnBuilder(fbuild.db.PersistentObject):
         self.ruby = ruby
 
     @fbuild.db.cachemethod
-    def convert(self, src: fbuild.db.SRC, *, mandir, htmldir):
+    def convert(self, src: fbuild.db.SRC, *, index: fbuild.db.SRC, mandir, htmldir):
         ronn = Path('scripts/ronn.rb')
         src = Path(src)
 
@@ -273,7 +273,8 @@ def build(ctx):
         return
 
     u_man = copy(ctx, 'man/uprocctl.1.ronn', 'ronn/u.1.ronn')
-    page_out = ctx.scheduler.map(partial(rec.ronn.convert, mandir='man', htmldir='web'),
+    page_out = ctx.scheduler.map(partial(rec.ronn.convert, index='man/index.txt',
+                                         mandir='man', htmldir='web'),
                                  [u_man] + Path.glob('man/*.ronn'))
     u_man_out = page_out[0]
 
