@@ -168,8 +168,13 @@ def _configure(ctx, print_):
     if not Judy(c.static).Judy_h:
         raise fbuild.ConfigFailed('Judy is required.')
 
+    try:
+        systemctl = find_program(ctx, ['systemctl'])
+    except fbuild.ConfigFailed:
+        systemctl = None
+
     rec = Record(c=c, libsystemd=libsystemd, python3=python3, ruby_bin=ruby_bin,
-                 ruby=ruby, ronn=ronn)
+                 ruby=ruby, ronn=ronn, systemctl=systemctl)
     if print_:
         print_config(ctx, rec)
     return rec
@@ -302,3 +307,19 @@ def build(ctx):
         section = page.man.ext.lstrip('.')
 
         ctx.install(page.man, 'share/man/man%s' % section, rename=rename)
+
+
+def pre_install(ctx):
+    rec = _configure(ctx, print_=False)
+    ctx.execute([rec.systemctl, 'stop', 'cgrmvd'], msg1='systemctl stop', msg2='cgrmvd',
+                color='compile', ignore_error=True)
+    ctx.execute([rec.systemctl, '--user', 'stop', 'uprocd.slice'], msg1='systemctl stop',
+                msg2='uprocd (user)', color='compile', ignore_error=True)
+
+
+def post_install(ctx):
+    rec = _configure(ctx, print_=False)
+    ctx.execute([rec.systemctl, 'daemon-reload'], msg1='systemctl', msg2='daemon-reload',
+                color='compile', ignore_error=True)
+    ctx.execute([rec.systemctl, '--user', 'daemon-reload'], msg1='systemctl',
+                msg2='daemon-reload (user)', color='compile', ignore_error=True)
