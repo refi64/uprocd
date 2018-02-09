@@ -16,3 +16,9 @@ uprocctl(1), u(1) - Query or run uprocd modules
 uprocd.module(5) - uprocd module configuration format
 
 uprocd.h(3) - uprocd native module API index
+
+## CGRMVD
+
+cgrmvd(7) - The CGRoup MoVer Daemon
+
+cgrmvd.policy(5) - cgrmvd policy configuration format
