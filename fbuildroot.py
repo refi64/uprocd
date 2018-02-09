@@ -274,12 +274,13 @@ def build(ctx):
 
     copy(ctx, 'web/index.html', 'web')
 
-    ctx.install(cgrmvd, 'bin')
-    ctx.install(uprocd, 'bin')
+    ctx.install(cgrmvd, 'share/uprocd/bin')
+    ctx.install(uprocd, 'share/uprocd/bin')
     ctx.install(uprocctl, 'bin')
     ctx.install(u, 'bin')
 
     ctx.install('misc/uprocd@.service', 'lib/systemd/user')
+    ctx.install('misc/cgrmvd.service', 'lib/systemd/system')
     ctx.install('misc/uprocd.policy', 'share/cgrmvd/policies')
     ctx.install('misc/com.refi64.uprocd.Cgrmvd.conf', '/etc/dbus-1/system.d')
 
