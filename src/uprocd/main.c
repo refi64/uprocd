@@ -165,7 +165,7 @@ int load_dl_handle(const char *module, config *cfg, dl_handle *phandle) {
   sdsfree(native_lib);
 
   INFO("Loading native library at %S...", path);
-  void *dl = dlopen(path, RTLD_LAZY | RTLD_LOCAL);
+  void *dl = dlopen(path, RTLD_LAZY | RTLD_GLOBAL);
   sdsfree(path);
 
   if (dl == NULL) {
