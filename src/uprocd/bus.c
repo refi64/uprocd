@@ -6,7 +6,7 @@
 
 #include <systemd/sd-bus.h>
 
-int service_method_status(sd_bus_message *msg, void *data, sd_bus_error *buserr) {
+int service_method_status(sd_bus_message *msg, void *data, sd_bus_error *err) {
   char *name = global_run_data.module;
   char *description = global_run_data.description ? global_run_data.description :
                       "<none>";
@@ -14,7 +14,7 @@ int service_method_status(sd_bus_message *msg, void *data, sd_bus_error *buserr)
   return sd_bus_reply_method_return(msg, "ss", name, description);
 }
 
-int service_method_run(sd_bus_message *msg, void *data, sd_bus_error *buserr) {
+int service_method_run(sd_bus_message *msg, void *data, sd_bus_error *err) {
   char *title = global_run_data.process_name ? global_run_data.process_name :
                 global_run_data.module;
 
@@ -93,8 +93,8 @@ int service_method_run(sd_bus_message *msg, void *data, sd_bus_error *buserr) {
   } else {
     return sd_bus_reply_method_return(msg, "xs", child, title);
   }
-
 }
+
 static const sd_bus_vtable service_vtable[] = {
   SD_BUS_VTABLE_START(0),
   // Status() -> String name, String description

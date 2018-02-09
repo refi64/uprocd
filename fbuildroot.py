@@ -246,6 +246,7 @@ def build(ctx):
     common_kw = common_kw.copy()
     common_kw['libs'] = common_kw['libs'] + [common]
 
+    cgrmvd = rec.c.static.build_exe('cgrmvd', Path.glob('src/cgrmvd/*.c'), **common_kw)
     uprocd = rec.c.static.build_exe('uprocd', Path.glob('src/uprocd/*.c'), **common_kw)
     uprocctl = rec.c.static.build_exe('uprocctl', Path.glob('src/uprocctl/*.c'),
                                       **common_kw)
@@ -273,11 +274,14 @@ def build(ctx):
 
     copy(ctx, 'web/index.html', 'web')
 
+    ctx.install(cgrmvd, 'bin')
     ctx.install(uprocd, 'bin')
     ctx.install(uprocctl, 'bin')
     ctx.install(u, 'bin')
 
-    ctx.install('systemd/uprocd@.service', 'lib/systemd/user')
+    ctx.install('misc/uprocd@.service', 'lib/systemd/user')
+    ctx.install('misc/uprocd.policy', 'share/cgrmvd/policies')
+    ctx.install('misc/com.refi64.uprocd.Cgrmvd.conf', '/etc/dbus-1/system.d')
 
     for i, output in enumerate(module_outputs):
         if output is None:
