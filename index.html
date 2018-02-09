@@ -181,6 +181,9 @@ Time elapsed: 0:00.11
 $ git clone --recursive https://github.com/kirbyfan64/uprocd.git
 $ fbuild
 $ sudo fbuild install
+# Enable the cgrmvd system service.
+$ systemctl enable cgrmvd
+$ systemctl start cgrmvd
   </code></pre>
 
   <p>Use <code>fbuild --release</code> for a release build.</p>
