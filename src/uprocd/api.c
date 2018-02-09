@@ -69,7 +69,7 @@ struct uprocd_context {
   int argc;
   sds *argv, *env;
   sds cwd;
-  int fds[3];
+  int fds[3], pid;
 };
 
 UPROCD_EXPORT void uprocd_context_get_args(uprocd_context *ctx, int *pargc,
@@ -102,6 +102,34 @@ UPROCD_EXPORT void uprocd_context_free(uprocd_context *ctx) {
   free(ctx);
 }
 
+static void move_cgroups(int64_t origin) {
+  sd_bus *bus = NULL;
+  sd_bus_message *msg = NULL;
+  sd_bus_error err = SD_BUS_ERROR_NULL;
+  int rc;
+
+  rc = sd_bus_open_system(&bus);
+  if (rc < 0) {
+    FAIL("sd_bus_open_system failed: %s", strerror(-rc));
+    goto end;
+  }
+
+  int64_t pid = getpid();
+
+  rc = sd_bus_call_method(bus, "com.refi64.uprocd.Cgrmvd",
+                          "/com/refi64/uprocd/Cgrmvd", "com.refi64.uprocd.Cgrmvd",
+                          "MoveCgroup", &err, &msg, "xx", pid, origin);
+  if (rc < 0) {
+    FAIL("Error calling com.refi64.uprocd.Cgrmvd.MoveCgroup: %s", err.message);
+    goto end;
+  }
+
+  end:
+  sd_bus_error_free(&err);
+  sd_bus_message_unref(msg);
+  sd_bus_unref(bus);
+}
+
 UPROCD_EXPORT void uprocd_context_enter(uprocd_context *ctx) {
   for (char **p = environ; *p; p++) {
     sds env = sdsnew(*p);
@@ -116,7 +144,7 @@ UPROCD_EXPORT void uprocd_context_enter(uprocd_context *ctx) {
   }
 
   if (chdir(ctx->cwd) == -1) {
-    FAIL("WARNING: Error chdir into new cwd %S: %s", ctx->cwd, strerror(errno));
+    FAIL("WARNING: chdir into new cwd %S failed: %s", ctx->cwd, strerror(errno));
   }
 
   close(0);
@@ -126,7 +154,11 @@ UPROCD_EXPORT void uprocd_context_enter(uprocd_context *ctx) {
   dup2(ctx->fds[1], 1);
   dup2(ctx->fds[2], 2);
 
-  setsid();
+  move_cgroups(ctx->pid);
+
+  if (setpgrp() == -1) {
+    FAIL("WARNING: setpgrp failed: %s", strerror(errno));
+  }
 }
 
 sds * convert_env_to_api_format(table *penv) {
@@ -159,6 +191,7 @@ int prepare_context_and_fork(int argc, char **argv, table *env, char *cwd, int *
   ctx->fds[0] = dup(fds[0]);
   ctx->fds[1] = dup(fds[1]);
   ctx->fds[2] = dup(fds[2]);
+  ctx->pid = pid;
   global_run_data.upcoming_context = ctx;
 
   pid_t child = fork();
@@ -167,7 +200,6 @@ int prepare_context_and_fork(int argc, char **argv, table *env, char *cwd, int *
     return -errno;
   } else if (child == 0) {
     prctl(PR_SET_PTRACER, pid, 0, 0);
-    prctl(PR_SET_PDEATHSIG, SIGKILL, 0, 0);
     ioctl(0, TIOCSCTTY, 1);
 
     write(wait_for_set_ptracer[1], "", 1);

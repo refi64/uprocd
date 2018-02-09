@@ -53,3 +53,97 @@ void setproctitle(const char *fmt, ...) {
   prctl(PR_SET_NAME, name, NULL, NULL, NULL);
   sdsfree(name);
 }
+
+int readline(FILE *fp, sds *pline) {
+  sds result = sdsempty();
+  *pline = NULL;
+  char buf[128];
+  buf[0] = 0;
+  for (;;) {
+    if (fgets(buf, sizeof(buf), fp) == NULL) {
+      if (ferror(fp)) {
+        int errno_ = errno;
+        sdsfree(result);
+        return -errno_;
+      } else if (feof(fp)) {
+        break;
+      }
+    }
+
+    result = sdscat(result, buf);
+    if (result[sdslen(result) - 1] == '\n') {
+      break;
+    }
+  }
+  if (sdslen(result) == 0) {
+    sdsfree(result);
+    return 0;
+  }
+  sdstrim(result, "\n");
+  *pline = result;
+  return 0;
+}
+
+void table_init(table *tbl) {
+  tbl->p = NULL;
+  tbl->sz = 0;
+}
+
+void table_add(table *tbl, const char *key, void *value) {
+  Word_t *pvalue;
+  JSLI(pvalue, tbl->p, (const uint8_t*)key);
+  *pvalue = (Word_t)value;
+  tbl->sz++;
+}
+
+void * table_get(table *tbl, const char *key) {
+  Word_t *pvalue;
+  JSLG(pvalue, tbl->p, (const uint8_t*)key);
+  if (pvalue) {
+    return *(void**)pvalue;
+  } else {
+    return NULL;
+  }
+}
+
+void * table_swap(table *tbl, const char *key, void *value) {
+  void *orig = table_get(tbl, key);
+  table_add(tbl, key, value);
+  return orig;
+}
+
+int table_del(table *tbl, const char *key) {
+  int rc;
+  JSLD(rc, tbl->p, (const uint8_t*)key);
+  if (rc) {
+    tbl->sz--;
+  }
+  return rc;
+}
+
+char * table_next(table *tbl, char *prev, void **value) {
+  Word_t *pvalue;
+  uint8_t idx[4096];
+  if (prev == NULL) {
+    idx[0] = 0;
+    JSLF(pvalue, tbl->p, idx);
+  } else {
+    strncpy((char*)idx, prev, sizeof(idx));
+    JSLN(pvalue, tbl->p, idx);
+  }
+  free(prev);
+  if (!pvalue) {
+    return NULL;
+  }
+  size_t len = strlen((char*)idx);
+  char *res = alloc(len + 1);
+  memcpy(res, idx, len + 1);
+  if (value) {
+    *value = (void*)*pvalue;
+  }
+  return res;
+}
+
+void table_free(table *tbl) {
+  JudySLFreeArray((PPvoid_t)&tbl->p, PJE0);
+}

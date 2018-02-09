@@ -7,8 +7,6 @@
 
 #include "common.h"
 
-#include <Judy.h>
-
 #include <setjmp.h>
 
 void _message(int failure, sds error);
@@ -16,18 +14,6 @@ void _message(int failure, sds error);
 #define _MESSAGE(failure, ...) _message(failure, sdscatfmt(sdsempty(), __VA_ARGS__))
 #define INFO(...) _MESSAGE(0, __VA_ARGS__)
 #define FAIL(...) _MESSAGE(1, __VA_ARGS__)
-
-typedef struct {
-  Pvoid_t p;
-  size_t sz;
-} table;
-
-void table_init(table *tbl);
-void table_add(table *tbl, const char *key, void *value);
-void * table_get(table *tbl, const char *key);
-void * table_swap(table *tbl, const char *key, void *value);
-char * table_next(table *tbl, char *prev, void **value);
-void table_free(table *tbl);
 
 typedef struct user_type {
   enum { TYPE_NONE, TYPE_LIST, TYPE_STRING, TYPE_NUMBER } kind;

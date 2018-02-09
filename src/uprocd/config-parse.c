@@ -7,36 +7,6 @@
 
 #include <ctype.h>
 
-static int readline(FILE *fp, sds *pline) {
-  sds result = sdsempty();
-  *pline = NULL;
-  char buf[128];
-  buf[0] = 0;
-  for (;;) {
-    if (fgets(buf, sizeof(buf), fp) == NULL) {
-      if (ferror(fp)) {
-        int errno_ = errno;
-        sdsfree(result);
-        return -errno_;
-      } else if (feof(fp)) {
-        break;
-      }
-    }
-
-    result = sdscat(result, buf);
-    if (result[sdslen(result) - 1] == '\n') {
-      break;
-    }
-  }
-  if (sdslen(result) == 0) {
-    sdsfree(result);
-    return 0;
-  }
-  sdstrim(result, "\n");
-  *pline = result;
-  return 0;
-}
-
 config *config_parse(const char *path) {
   FILE *fp = fopen(path, "r");
   if (fp == NULL) {

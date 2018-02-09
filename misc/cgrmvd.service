@@ -1,0 +1,12 @@
+[Unit]
+Description=CGRoup MoVer Daemon
+
+[Service]
+Type=dbus
+BusName=com.refi64.uprocd.Cgrmvd
+ExecStart=/usr/share/uprocd/bin/cgrmvd
+KillMode=process
+Restart=always
+
+[Install]
+WantedBy=default.target
