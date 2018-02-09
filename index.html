@@ -228,6 +228,52 @@ $ uprocctl run ipython
     <a href="https://github.com/kirbyfan64/uprocd/tree/master/modules">the source code
       for the both the Python modules and two basic examples</a>.
 
+  <h2 id="faq"><a class="clear" href="#faq">FAQs</a></h2>
+
+  <br>
+
+  <h3 id="faq-similar"><a class="clear" href="#faq-similar">Are there other similar projects?</a></h3>
+
+  <p>
+    <a href="http://coltf.blogspot.com/p/android-os-processes-and-zygote.html">Android's
+      Zygote</a> does something similar to ensure the VM is already warmed up: it loads
+      once, then forks off into other processes with an already-warmed VM.</p>
+
+  <p>
+    I was also recently informed that
+    <a href="https://www.reddit.com/r/linux/comments/7rmmzg/announcing_uprocd_a_linux_process_cache_that/dsy46gn/">KDE2
+      did something similar with kdeinit</a> in order to avoid loading shared libraries
+      over and over again.</p>
+
+  <h3 id="faq-mem"><a class="clear" href="#faq-mem">How does uprocd affect memory usage</a></h3>
+
+  <p>
+    It shouldn't affect it that much. For instance, leaving uprocd's IPython module
+    running in the background won't affect your memory usage much more than keeping
+    IPython open all the time.</p>
+
+  <p>
+    Now in theory, uprocd could actually <i>decrease</i> memory usage: since forks are
+    copy-on-write, any memory that isn't written two would be shared between processes.
+    However, all the current uprocd modules (Python and Ruby) use interpreted,
+    garbage-collected languages, and the second the GC touches a memory page, it will be
+    copied.</p>
+
+  <p>
+    If a uprocd module were created for program written in a non-GC'd language, it would
+    be more likely to show decreased memory usage.</p>
+
+  <h3 id="faq-boot"><a class="clear" href="#faq-boot">Does enabling uprocd modules at boot increase boot times?</a></h3>
+
+  <p>
+    Yes. In theory, this isn't much of a loss: systemd's parallelism helps ensure that
+    uprocd alone won't hold back your entire boot, and I personally haven't noticed
+    any significant slowdowns.</p>
+
+  <p>
+    That being said, if you want the stats: the Python modules each take around 2s to
+    start. Not sure about Ruby, since I don't have it enabled on boot.</p>
+
   <h2 id="contributing"><a class="clear" href="#contributing">Contributing</a></h2>
 
   <p>
