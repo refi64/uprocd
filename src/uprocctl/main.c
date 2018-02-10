@@ -368,7 +368,7 @@ int main(int argc, char **argv) {
       return rc < 0 ? 1 : 0;
     }
     return run(argv[1], argc - 2, argv + 2);
-  } else if (strncmp(name, "u", 1) == 0) {
+  } else if (strncmp(name, "u", 1) == 0 && strcmp(name, "uprocctl") != 0) {
     return run(name + 1, argc - 1, argv + 1);
   } else {
     if (strcmp(name, "uprocctl") != 0) {
