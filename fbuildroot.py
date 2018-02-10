@@ -33,7 +33,7 @@ def arguments(parser):
     group.add_argument('--prefix', help='Set the installation prefix', default='usr')
     group.add_argument('--auto-service',
                        help='Automatically stop services before installation',
-                       action='store_true', default=True)
+                       action='store_true', default=False)
 
 
 class Judy(Test):
@@ -237,7 +237,8 @@ def build_module(ctx, module, *, rec, uprocctl):
 
 def build(ctx):
     rec = _configure(ctx, print_=True)
-    ctx.install_prefix = Path(ctx.options.destdir) / Path(ctx.options.prefix)
+    ctx.install_destdir = Path(ctx.options.destdir)
+    ctx.install_prefix = Path(ctx.options.prefix)
 
     sds = rec.c.static.build_lib('sds', ['sds/sds.c'])
 
@@ -292,8 +293,7 @@ def build(ctx):
     ctx.install('misc/uprocd@.service', 'lib/systemd/user')
     ctx.install('misc/cgrmvd.service', 'lib/systemd/system')
     ctx.install('misc/uprocd.policy', 'share/cgrmvd/policies')
-    ctx.install('misc/com.refi64.uprocd.Cgrmvd.conf',
-                Path(ctx.options.destdir) / 'etc/dbus-1/system.d')
+    ctx.install('misc/com.refi64.uprocd.Cgrmvd.conf', '/etc/dbus-1/system.d')
 
     for i, output in enumerate(module_outputs):
         if output is None:
