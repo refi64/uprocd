@@ -29,7 +29,11 @@ def arguments(parser):
                        action='store_true', default=False)
     group.add_argument('--pkg-config', help='Use the given pkg-config executable')
     group.add_argument('--ruby', help='Use the given Ruby binary')
-    group.add_argument('--prefix', help='Set the installation prefix', default='/usr')
+    group.add_argument('--destdir', help='Set the installation destdir', default='/')
+    group.add_argument('--prefix', help='Set the installation prefix', default='usr')
+    group.add_argument('--auto-service',
+                       help='Automatically stop services before installation',
+                       action='store_true', default=True)
 
 
 class Judy(Test):
@@ -233,7 +237,7 @@ def build_module(ctx, module, *, rec, uprocctl):
 
 def build(ctx):
     rec = _configure(ctx, print_=True)
-    ctx.install_prefix = Path(ctx.options.prefix)
+    ctx.install_prefix = Path(ctx.options.destdir) / Path(ctx.options.prefix)
 
     sds = rec.c.static.build_lib('sds', ['sds/sds.c'])
 
@@ -288,7 +292,8 @@ def build(ctx):
     ctx.install('misc/uprocd@.service', 'lib/systemd/user')
     ctx.install('misc/cgrmvd.service', 'lib/systemd/system')
     ctx.install('misc/uprocd.policy', 'share/cgrmvd/policies')
-    ctx.install('misc/com.refi64.uprocd.Cgrmvd.conf', '/etc/dbus-1/system.d')
+    ctx.install('misc/com.refi64.uprocd.Cgrmvd.conf',
+                Path(ctx.options.destdir) / 'etc/dbus-1/system.d')
 
     for i, output in enumerate(module_outputs):
         if output is None:
@@ -311,16 +316,19 @@ def build(ctx):
 
 
 def pre_install(ctx):
-    rec = _configure(ctx, print_=False)
-    ctx.execute([rec.systemctl, 'stop', 'cgrmvd'], msg1='systemctl stop', msg2='cgrmvd',
-                color='compile', ignore_error=True)
-    ctx.execute([rec.systemctl, '--user', 'stop', 'uprocd.slice'], msg1='systemctl stop',
-                msg2='uprocd (user)', color='compile', ignore_error=True)
+    if ctx.options.auto_service:
+        rec = _configure(ctx, print_=False)
+        ctx.execute([rec.systemctl, 'stop', 'cgrmvd'], msg1='systemctl stop',
+                    msg2='cgrmvd', color='compile', ignore_error=True)
+        ctx.execute([rec.systemctl, '--user', 'stop', 'uprocd.slice'],
+                    msg1='systemctl stop', msg2='uprocd (user)', color='compile',
+                    ignore_error=True)
 
 
 def post_install(ctx):
-    rec = _configure(ctx, print_=False)
-    ctx.execute([rec.systemctl, 'daemon-reload'], msg1='systemctl', msg2='daemon-reload',
-                color='compile', ignore_error=True)
-    ctx.execute([rec.systemctl, '--user', 'daemon-reload'], msg1='systemctl',
-                msg2='daemon-reload (user)', color='compile', ignore_error=True)
+    if ctx.options.auto_service:
+        rec = _configure(ctx, print_=False)
+        ctx.execute([rec.systemctl, 'daemon-reload'], msg1='systemctl',
+                    msg2='daemon-reload', color='compile', ignore_error=True)
+        ctx.execute([rec.systemctl, '--user', 'daemon-reload'], msg1='systemctl',
+                    msg2='daemon-reload (user)', color='compile', ignore_error=True)
