@@ -237,8 +237,8 @@ def build_module(ctx, module, *, rec, uprocctl):
 
 def build(ctx):
     rec = _configure(ctx, print_=True)
-    ctx.install_destdir = Path(ctx.options.destdir)
-    ctx.install_prefix = Path(ctx.options.prefix)
+    ctx.install_destdir = ctx.options.destdir
+    ctx.install_prefix = ctx.options.prefix
 
     sds = rec.c.static.build_lib('sds', ['sds/sds.c'])
 
