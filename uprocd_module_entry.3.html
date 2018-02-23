@@ -97,7 +97,7 @@
 
 <pre><code class="c">#include &lt;uprocd.h&gt;
 
-UPROCD_EXPORT void uprocd_module_entry();
+UPROCD_EXPORT int uprocd_module_entry();
 </code></pre>
 
 <h2 id="DESCRIPTION">DESCRIPTION</h2>
@@ -118,6 +118,7 @@ desired environment.</li>
 <li>Call <a class="man-ref" href="uprocd_context_free.3.html"><code>uprocd_context_free</code><span class="s">(3)</span></a> only if you are done working with the context or any
 of its return values.</li>
 <li>Run the main module code.</li>
+<li>Return the desired exit code.</li>
 </ol>
 
 
@@ -130,7 +131,7 @@ of the inner workings of uprocd.</p>
 
 #include &lt;uprocd.h&gt;
 
-UPROCD_EXPORT void uprocd_module_entry() {
+UPROCD_EXPORT int uprocd_module_entry() {
   initialize();
   uprocd_context *ctx = uprocd_run();
 
@@ -141,6 +142,7 @@ UPROCD_EXPORT void uprocd_module_entry() {
 
   run_main_program();
   uprocd_context_free(ctx);
+  return 0;
 }
 </code></pre>
 
@@ -152,7 +154,7 @@ UPROCD_EXPORT void uprocd_module_entry() {
 
   <ol class='man-decor man-foot man foot'>
     <li class='tl'></li>
-    <li class='tc'>January 2018</li>
+    <li class='tc'>February 2018</li>
     <li class='tr'>uprocd_module_entry(3)</li>
   </ol>
 
