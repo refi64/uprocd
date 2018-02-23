@@ -48,7 +48,7 @@ void set_environment(uprocd_context *ctx) {
   }
 }
 
-UPROCD_EXPORT void uprocd_module_entry() {
+UPROCD_EXPORT int uprocd_module_entry() {
   Py_SetProgramName(L"python");
   Py_Initialize();
 
@@ -56,7 +56,7 @@ UPROCD_EXPORT void uprocd_module_entry() {
   FILE *modules = fopen(modules_path, "r");
   if (modules == NULL) {
     fprintf(stderr, "Error loading _uprocd_modules.py: %s\n", strerror(errno));
-    return;
+    return 1;
   }
 
   PyRun_SimpleFileEx(modules, modules_path, 1);
@@ -74,7 +74,6 @@ UPROCD_EXPORT void uprocd_module_entry() {
   char **argv;
   uprocd_context_get_args(ctx, &argc, &argv);
 
-
   const char *run = uprocd_config_string("Run");
   if (strlen(run) != 0) {
     has_run_offset = 2;
@@ -85,7 +84,7 @@ UPROCD_EXPORT void uprocd_module_entry() {
   wchar_t **wargv = PyMem_RawMalloc(sizeof(wchar_t*) * (argc + 1));
   if (wargv == NULL) {
     fprintf(stderr, "Error initializing Python interpreter: Out of memory.\n");
-    return;
+    return 1;
   }
 
   wargv[0] = L"python";
@@ -95,7 +94,7 @@ UPROCD_EXPORT void uprocd_module_entry() {
     wargv[2] = Py_DecodeLocale(run, NULL);
     if (wargv[2] == NULL) {
       fprintf(stderr, "Error decoding Run argument.\n");
-      return;
+      return 1;
     }
   }
 
@@ -103,7 +102,7 @@ UPROCD_EXPORT void uprocd_module_entry() {
     wargv[i] = Py_DecodeLocale(argv[i - has_run_offset], NULL);
     if (wargv[i] == NULL) {
       fprintf(stderr, "Error initializing Python interpreter: Error decoding argv.\n");
-      return;
+      return 1;
     }
   }
 
@@ -111,5 +110,5 @@ UPROCD_EXPORT void uprocd_module_entry() {
   int ret = Py_Main(argc, wargv);
 
   uprocd_context_free(ctx);
-  exit(ret);
+  return ret;
 }

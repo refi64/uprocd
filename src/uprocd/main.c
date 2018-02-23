@@ -202,7 +202,7 @@ int main(int argc, char **argv) {
   }
 
   char *module = argv[2];
-  setproctitle("-uprocd:%s", module);
+  setproctitle("-uprocd@%s", module);
 
   sds module_dir;
   config *cfg = load_config(module, &module_dir);
@@ -238,7 +238,7 @@ int main(int argc, char **argv) {
     INFO("Entering uprocd_run...");
     signal(SIGINT, interrupt_main);
     signal(SIGCHLD, clear_child);
-    handle.entry();
+    result = handle.entry();
   }
 
   sdsfree(global_run_data.module_dir);

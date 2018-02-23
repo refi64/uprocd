@@ -206,7 +206,9 @@ int prepare_context_and_fork(int argc, char **argv, table *env, char *cwd, int *
     close(wait_for_set_ptracer[0]);
     close(wait_for_set_ptracer[1]);
 
-    setproctitle("-uprocd@%s", global_run_data.module);
+    setproctitle("-uprocd:%s", global_run_data.module);
+    signal(SIGINT, SIG_DFL);
+    signal(SIGCHLD, SIG_DFL);
 
     return 0;
   } else {

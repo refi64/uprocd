@@ -7,8 +7,8 @@
 
 #define UPROCD_EXPORT __attribute__((visibility("default")))
 
-typedef void (*uprocd_module_entry_type)();
-UPROCD_EXPORT void uprocd_module_entry();
+typedef int (*uprocd_module_entry_type)();
+UPROCD_EXPORT int uprocd_module_entry();
 
 UPROCD_EXPORT const char * uprocd_module_directory();
 UPROCD_EXPORT char * uprocd_module_path(const char *path);

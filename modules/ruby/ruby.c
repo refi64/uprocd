@@ -85,7 +85,7 @@ VALUE ruby_entry(VALUE udata) {
   return ruby_run_node(node);
 }
 
-UPROCD_EXPORT void uprocd_module_entry() {
+UPROCD_EXPORT int uprocd_module_entry() {
   ruby_init();
   ruby_init_loadpath();
 
@@ -93,8 +93,8 @@ UPROCD_EXPORT void uprocd_module_entry() {
   int ret = rb_protect(ruby_entry, 0, &state);
   if (state) {
     check_error("Error:");
-    exit(1);
+    return 1;
   } else {
-    exit(ret);
+    return ret;
   }
 }

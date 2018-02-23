@@ -5,7 +5,7 @@
 ```c
 #include <uprocd.h>
 
-UPROCD_EXPORT void uprocd_module_entry();
+UPROCD_EXPORT int uprocd_module_entry();
 ```
 
 ## DESCRIPTION
@@ -25,6 +25,7 @@ uprocd_module_entry should perform the following:
 7. Call `uprocd_context_free`(3) only if you are done working with the context or any
    of its return values.
 8. Run the main module code.
+9. Return the desired exit code.
 
 If this seems confusing, see `uprocd.h`(3) and `uprocd`(7) for a higher-level overview
 of the inner workings of uprocd.
@@ -36,7 +37,7 @@ of the inner workings of uprocd.
 
 #include <uprocd.h>
 
-UPROCD_EXPORT void uprocd_module_entry() {
+UPROCD_EXPORT int uprocd_module_entry() {
   initialize();
   uprocd_context *ctx = uprocd_run();
 
@@ -47,6 +48,7 @@ UPROCD_EXPORT void uprocd_module_entry() {
 
   run_main_program();
   uprocd_context_free(ctx);
+  return 0;
 }
 ```
 
