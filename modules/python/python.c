@@ -108,7 +108,8 @@ UPROCD_EXPORT void uprocd_module_entry() {
   }
 
   wargv[argc] = NULL;
-  Py_Main(argc, wargv);
+  int ret = Py_Main(argc, wargv);
 
   uprocd_context_free(ctx);
+  exit(ret);
 }

@@ -86,6 +86,14 @@ void u_help() {
   run_help_base(1);
 }
 
+void killme(int sig) {
+  signal(sig, SIG_DFL);
+  if (raise(sig) != 0) {
+    FAIL("raise failed: %s", strerror(errno));
+    abort();
+  }
+}
+
 int status(const char *module) {
   sd_bus *bus = NULL;
   sd_bus_message *msg = NULL, *reply = NULL;
@@ -147,35 +155,27 @@ int wait_for_process() {
   }
 
   for (;;) {
-    siginfo_t sig;
-
-    if (waitid(P_PID, target_pid, &sig, WEXITED) == -1) {
-      FAIL("Error waiting for %I: %s", target_pid, strerror(errno));
+    int wstatus;
+    if (waitpid(target_pid, &wstatus, 0) == -1) {
+      FAIL("waitpid: %s", strerror(errno));
       return 1;
     }
 
-    if (sig.si_code == CLD_EXITED) {
-      return sig.si_status;
-    } else if (sig.si_code == CLD_KILLED || sig.si_code == CLD_DUMPED) {
-      return sig.si_status + 128;
-    } else if (sig.si_code == CLD_TRAPPED) {
-      if (sig.si_status == (SIGTRAP | (PTRACE_EVENT_EXIT<<8))) {
-        unsigned long status;
-        if (ptrace(PTRACE_GETEVENTMSG, target_pid, NULL, &status) == -1) {
-          FAIL("Error retrieving exit code via ptrace: %s", strerror(errno));
-          return 1;
-        }
-        return status >> 8;
-      } else {
-        if (ptrace(PTRACE_CONT, target_pid, NULL, (void*)(long)sig.si_status) == -1) {
-          return sig.si_status + 128;
-        } else {
-          continue;
-        }
+    if (wstatus >> 8 == (SIGTRAP | (PTRACE_EVENT_EXIT << 8))) {
+      unsigned long pstatus;
+      if (ptrace(PTRACE_GETEVENTMSG, target_pid, NULL, &pstatus) == -1) {
+        FAIL("PTRACE_GETEVENTMSG failed: %s", strerror(errno));
+        return 0;
       }
+
+      return WEXITSTATUS(pstatus);
+    } else if (WIFSTOPPED(wstatus) || WIFSIGNALED(wstatus)) {
+      killme(WIFSTOPPED(wstatus) ? WSTOPSIG(wstatus) : WTERMSIG(wstatus));
+      return 0;
+    } else if (WIFEXITED(wstatus)) {
+      return WEXITSTATUS(wstatus);
     } else {
-      FAIL("Unexpected sig.si_code: %i (si_status: %i)", sig.si_code, sig.si_status);
-      return 1;
+      FAIL("waitpid gave unexpected status: %d\n", wstatus);
     }
   }
 }
@@ -185,7 +185,6 @@ void forward_signal(int sig) {
     FAIL("target_pid == %I in forward_signal", target_pid);
     abort();
   }
-  /* printf("%d\n", sig); */
   kill(target_pid, sig);
 }
 
