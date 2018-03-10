@@ -1,4 +1,4 @@
-# uprocd_config_list_size(3) -- Return the size of the list at the given property
+# uprocd_config_list_size -- Return the size of the list at the given property
 
 ## SYNOPSIS
 

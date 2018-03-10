@@ -40,31 +40,26 @@ class Judy(Test):
     Judy_h = header_test('Judy.h')
 
 
-class RonnBuilder(fbuild.db.PersistentObject):
-    def __init__(self, ctx, ruby):
+class MrkdBuilder(fbuild.db.PersistentObject):
+    def __init__(self, ctx):
         self.ctx = ctx
-        self.ruby = ruby
+        self.mrkd = find_program(ctx, ['mrkd'])
 
     @fbuild.db.cachemethod
-    def convert(self, src: fbuild.db.SRC, *, index: fbuild.db.SRC, mandir, htmldir):
-        ronn = Path('scripts/ronn.rb')
+    def convert(self, src: fbuild.db.SRC, *, index: fbuild.db.SRC, outdir, format):
+        assert format in ('roff', 'html')
+
         src = Path(src)
+        outdir = Path(outdir).addroot(self.ctx.buildroot)
+        outdir.makedirs()
 
-        mandir = Path(mandir).addroot(self.ctx.buildroot)
-        htmldir = Path(htmldir).addroot(self.ctx.buildroot)
+        ext = {'roff': '', 'html': '.html'}[format]
+        dst = outdir / src.basename().replaceext(ext)
 
-        mandir.makedirs()
-        htmldir.makedirs()
-
-        dstman = mandir / src.basename().replaceext('')
-        dsthtml = htmldir / src.basename().replaceext('.html')
-
-        cmd = [self.ruby, ronn, mandir, htmldir, src]
-        self.ctx.execute(cmd, 'ronn', '%s -> %s %s' % (src, dstman, dsthtml),
-                         color='yellow')
-        self.ctx.db.add_external_dependencies_to_call(srcs=[ronn],
-                                                      dsts=[dstman, dsthtml])
-        return Record(man=dstman, html=dsthtml)
+        cmd = [self.mrkd, src, dst, '-index', index, '-format', format]
+        self.ctx.execute(cmd, 'mrkd', '%s -> %s' % (src, dst), color='yellow')
+        self.ctx.db.add_external_dependencies_to_call(dsts=[dst])
+        return dst
 
 
 @fbuild.db.caches
@@ -113,7 +108,7 @@ def print_config(ctx, rec):
     print('C compiler:', rec.c.static.compiler.cc.exe)
     print('C compiler flags:', ' '.join(set(rec.c.static.compiler.flags)))
     print('C linker flags:', ' '.join(set(rec.c.static.exe_linker.flags)))
-    optprint('Build docs:', rec.ronn)
+    optprint('Build docs:', rec.mrkd)
 
     print()
     padprint('=', 'Modules')
@@ -157,7 +152,7 @@ def _configure(ctx, print_):
 
     python3 = run_pkg_config(ctx, 'python3')
 
-    ruby_bin = ruby = ronn = None
+    ruby_bin = ruby = None
     try:
         ruby_bin = ctx.options.ruby or find_program(ctx, ['ruby'])
     except fbuild.ConfigFailed:
@@ -167,7 +162,10 @@ def _configure(ctx, print_):
         if ruby_ver is not None:
             ruby = run_pkg_config(ctx, 'ruby-%s' % ruby_ver)
 
-        ronn = RonnBuilder(ctx, ruby_bin)
+    try:
+        mrkd = MrkdBuilder(ctx)
+    except fbuild.ConfigFailed:
+        mrkd = None
 
     if not Judy(c.static).Judy_h:
         raise fbuild.ConfigFailed('Judy is required.')
@@ -178,7 +176,7 @@ def _configure(ctx, print_):
         systemctl = None
 
     rec = Record(c=c, libsystemd=libsystemd, python3=python3, ruby_bin=ruby_bin,
-                 ruby=ruby, ronn=ronn, systemctl=systemctl)
+                 ruby=ruby, mrkd=mrkd, systemctl=systemctl)
     if print_:
         print_config(ctx, rec)
     return rec
@@ -235,6 +233,14 @@ def build_module(ctx, module, *, rec, uprocctl):
     return Record(binaries=binaries, data=module_data)
 
 
+def build_docs(ctx, src, *, rec, index):
+    outdirs = {'roff': 'man', 'html': 'web'}
+    man, html = ctx.scheduler.map(lambda fm: rec.mrkd.convert(src=src, index=index,
+                                                outdir=outdirs[fm], format=fm),
+                                  ['roff', 'html'])
+    return Record(man=man, html=html)
+
+
 def build(ctx):
     rec = _configure(ctx, print_=True)
     ctx.install_destdir = ctx.options.destdir
@@ -274,13 +280,13 @@ def build(ctx):
                         partial(build_module, ctx, rec=rec, uprocctl=uprocctl),
                         modules)
 
-    if rec.ronn is None:
+    if rec.mrkd is None:
         return
 
-    u_man = copy(ctx, 'man/uprocctl.1.ronn', 'ronn/u.1.ronn')
-    page_out = ctx.scheduler.map(partial(rec.ronn.convert, index='man/index.txt',
-                                         mandir='man', htmldir='web'),
-                                 [u_man] + Path.glob('man/*.ronn'))
+    u_man = copy(ctx, 'man/uprocctl.1.md', 'md/u.1.md')
+    page_out = ctx.scheduler.map(partial(build_docs, ctx, rec=rec,
+                                         index='man/index.ini'),
+                                 [u_man] + Path.glob('man/*.md'))
     u_man_out = page_out[0]
 
     copy(ctx, 'web/index.html', 'web')

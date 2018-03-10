@@ -10,7 +10,7 @@ UPROCD_EXPORT const char ** uprocd_context_get_env(uprocd_context *ctx);
 
 ## DESCRIPTION
 
-This functions will retrieve the environment of the `uprocctl`(1) process that called
+This functions will retrieve the environment of the uprocctl(1) process that called
 this module.
 
 ## RETURN VALUE

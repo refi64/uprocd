@@ -1,4 +1,4 @@
-# uprocd_on_exit(3) -- Set a handler to be called on uprocd_run failure
+# uprocd_on_exit -- Set a handler to be called on uprocd_run failure
 
 ## SYNOPSIS
 
@@ -11,7 +11,7 @@ UPROCD_EXPORT void uprocd_on_exit(uprocd_exit_handler func, void *userdata);
 
 ## DESCRIPTION
 
-This function will set a handler to be called if `uprocd_run`(3) fails. This handler
+This function will set a handler to be called if uprocd_run(3) fails. This handler
 will only ever be called from the original parent process.
 
 The given userdata will be passed to the handler when it is called.

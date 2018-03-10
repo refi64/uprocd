@@ -1,36 +1,36 @@
-# uprocctl(1), u(1) -- Query or run uprocd modules
+# uprocctl, u -- Query or run uprocd modules
 
 ## SYNOPSIS
 
-`uprocctl` [-h] status [MODULE]
+**uprocctl** [-h] status [MODULE]
 
-`uprocctl` [-h] run [MODULE] [ARGS...]
+**uprocctl** [-h] run [MODULE] [ARGS...]
 
-`u` [-h] [MODULE] [ARGS...]
+**u** [-h] [MODULE] [ARGS...]
 
-`u`[MODULE] [ARGS...]
+**u**[MODULE] [ARGS...]
 
 ## DESCRIPTION
 
-`uprocctl` allows you to perform high-level communication with uprocd modules. You can
+**uprocctl** allows you to perform high-level communication with uprocd modules. You can
 query information about the module, or run a command through it. For module state
-management (e.g. starting and stopping a module, or getting logs), use `systemctl`(1)
-and `journalctl`(1) (see `uprocd`(7) for a guide).
+management (e.g. starting and stopping a module, or getting logs), use systemctl(1)
+and journalctl(1) (see uprocd(7) for a guide).
 
-`u` is simply an alias for `uprocctl run`. If a symlink to uprocctl is created with
-a `u` prefix (such as upython), the prefix will be removed and the filename will be
+**u** is simply an alias for **uprocctl run**. If a symlink to uprocctl is created with
+a **u** prefix (such as upython), the prefix will be removed and the filename will be
 assumed to be a module. For instance, upython -h is equivalent to u python -h or
 uprocctl run python -h.
 
-`-h` or `--help` can be used to show a help screen.
+**-h** or **--help** can be used to show a help screen.
 
 ## COMMANDS
 
-`status`
+**status**
 
 > Shows the status of the given uprocd module.
 
-`run`
+**run**
 
 > Forks the given uprocd module, connecting its standard I/O to the current terminal.
 > uprocctl will trace the module, exiting with the module's exit code. Any arguments

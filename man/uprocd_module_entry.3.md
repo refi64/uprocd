@@ -1,4 +1,4 @@
-# uprocd_module_entry(3) -- Entry point for uprocd modules
+# uprocd_module_entry -- Entry point for uprocd modules
 
 ## SYNOPSIS
 
@@ -16,18 +16,18 @@ which will be called to initialize and run your modules.
 uprocd_module_entry should perform the following:
 
 1. Perform necessary initialization tasks.
-2. Optionally call `uprocd_on_exit`(3) to set up any failure handlers if an error occurs.
-3. Call `uprocd_run`(3) to fork the process and retrieve a context.
-4. Use the `uprocd_context_*` functions to retrieve necessary information, such as the
+2. Optionally call uprocd_on_exit(3) to set up any failure handlers if an error occurs.
+3. Call uprocd_run(3) to fork the process and retrieve a context.
+4. Use the **uprocd_context_*** functions to retrieve necessary information, such as the
    desired environment.
 5. Perform set up steps that should be done before the new context is entered.
-6. Call `uprocd_context_enter`(3) to enter the new context.
-7. Call `uprocd_context_free`(3) only if you are done working with the context or any
+6. Call uprocd_context_enter(3) to enter the new context.
+7. Call uprocd_context_free(3) only if you are done working with the context or any
    of its return values.
 8. Run the main module code.
 9. Return the desired exit code.
 
-If this seems confusing, see `uprocd.h`(3) and `uprocd`(7) for a higher-level overview
+If this seems confusing, see uprocd.h(3) and uprocd(7) for a higher-level overview
 of the inner workings of uprocd.
 
 ## EXAMPLE

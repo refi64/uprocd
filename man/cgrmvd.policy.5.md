@@ -1,4 +1,4 @@
-# cgrmvd.policy(5) -- cgrmvd policy configuration format
+# cgrmvd.policy -- cgrmvd policy configuration format
 
 ## SYNOPSIS
 
@@ -12,7 +12,7 @@ A cgrmvd policy is a simple configuration file ending in .policy.
 
 Each line of the file must be either empty, a comment, or a policy.
 
-Comments are lines that being with a pound sign (`#`).
+Comments are lines that being with a pound sign (**#**).
 
 Policy lines follow this format:
 

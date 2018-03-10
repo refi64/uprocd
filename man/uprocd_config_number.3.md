@@ -1,4 +1,4 @@
-# uprocd_config_number(3) -- Return the number at the given property
+# uprocd_config_number -- Return the number at the given property
 
 ## SYNOPSIS
 
@@ -11,7 +11,7 @@ UPROCD_EXPORT double uprocd_config_number(const char *key);
 ## DESCRIPTION
 
 This function will retrieve the number at the given property. To retrieve a number from
-a list, use `uprocd_config_number_at`(3).
+a list, use uprocd_config_number_at(3).
 
 ## RETURN VALUE
 
@@ -19,7 +19,7 @@ The number's value, or 0 if it is not present. It is undefined to call this func
 on a non-number value.
 
 To distinguist between 0 values and non-present properties, use
-`uprocd_config_present`(3).
+uprocd_config_present(3).
 
 ## EXAMPLE
 

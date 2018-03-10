@@ -1,4 +1,4 @@
-# uprocd_config_string_at(3) -- Return the string at the given index of a list
+# uprocd_config_string_at -- Return the string at the given index of a list
 
 ## SYNOPSIS
 
@@ -11,7 +11,7 @@ UPROCD_EXPORT const char * uprocd_config_string_at(const char *list, int index);
 ## DESCRIPTION
 
 This function will retrieve the string at the given index of the given list. To retrieve
-a string property, use `uprocd_config_string`(3).
+a string property, use uprocd_config_string(3).
 
 ## RETURN VALUE
 

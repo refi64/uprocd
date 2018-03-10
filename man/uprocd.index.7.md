@@ -1,8 +1,8 @@
-# uprocd.index(7) -- uprocd documentation index
+# uprocd.index -- uprocd documentation index
 
 ## RECOMMENDATIONS
 
-If you're just starting out, read `uprocd`(7) and `uprocctl`(1), which should send you
+If you're just starting out, read uprocd(7) and uprocctl(1), which should send you
 well on your way.
 
 ## BASIC USAGE

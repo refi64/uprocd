@@ -1,4 +1,4 @@
-# uprocd_config_present(3) -- Determine if the given property is present
+# uprocd_config_present -- Determine if the given property is present
 
 ## SYNOPSIS
 

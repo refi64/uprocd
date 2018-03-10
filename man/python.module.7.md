@@ -1,20 +1,20 @@
-# ruby.module(7) -- The uprocd Ruby module
+# python.module -- The uprocd Python module
 
 ## SYNOPSIS
 
-ruby.module
+python.module
 
 ## DESCRIPTION
 
-This is the Ruby native module for uprocd.
+This is the Python native module for uprocd.
 
 ## PROPERTIES
 
-`Preload=<string>`
+**Preload=<string>**
 
     Code to run during the initialization phase.
 
-`Run=<string>`
+**Run=<string>**
 
     Code to run when the module is forked.
 
@@ -22,10 +22,11 @@ This is the Ruby native module for uprocd.
 
 ```ini
 [DerivedModule]
-Base=ruby
+Base=python
 # This code is to initialize the module.
-Preload=require 'time'
+Preload=import IPython
 # This will be called when the module is run.
 Run=
-  puts "Running code..."
+  from IPython import start_ipython
+  sys.exit(start_ipython())
 ```

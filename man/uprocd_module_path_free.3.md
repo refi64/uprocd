@@ -1,4 +1,4 @@
-# uprocd_module_path_free(3) -- Free a uprocd_module_path return value
+# uprocd_module_path_free -- Free a uprocd_module_path return value
 
 ## SYNOPSIS
 
@@ -10,7 +10,7 @@ UPROCD_EXPORT void uprocd_module_path_free(char *path);
 
 ## DESCRIPTION
 
-This function will free the string returned from `uprocd_module_path`(3).
+This function will free the string returned from uprocd_module_path(3).
 
 ## SEE ALSO
 

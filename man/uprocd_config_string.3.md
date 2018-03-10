@@ -1,4 +1,4 @@
-# uprocd_config_string(3) -- Return the string at the given property
+# uprocd_config_string -- Return the string at the given property
 
 ## SYNOPSIS
 
@@ -11,7 +11,7 @@ UPROCD_EXPORT const char * uprocd_config_string(const char *key);
 ## DESCRIPTION
 
 This function will retrieve the string at the given property. To retrieve a string from
-a list, use `uprocd_config_string_at`(3).
+a list, use uprocd_config_string_at(3).
 
 ## RETURN VALUE
 

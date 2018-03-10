@@ -1,4 +1,4 @@
-# uprocd.module(5) -- uprocd module configuration format
+# uprocd.module -- uprocd module configuration format
 
 ## SYNOPSIS
 
@@ -8,7 +8,7 @@ module.module
 
 A module file with the extension .module contains the specification for a uprocd module.
 This page lists the format of a uprocd module, as well as several examples. For guidance
-on creating a native module library, see `uprocd.h`(3).
+on creating a native module library, see uprocd.h(3).
 
 ## BASIC SYNTAX
 
@@ -38,7 +38,7 @@ NormalKey=Value
 There are two types of modules: native modules and derived modules.
 
 Native modules consist of a .module file and shared object library (ending in .so) that
-contains a symbol `uprocd_module_entry`(3) that runs the module code. These modules can
+contains a symbol uprocd_module_entry(3) that runs the module code. These modules can
 specify properties that can be passed to them from derived modules.
 
 Derived modules are extensions of native modules. These consist of only a .module file,
@@ -51,24 +51,24 @@ which must be the very first section in the file.
 
 [NativeModule] or [DerivedModule] sections may specify the following properties:
 
-`ProcessName=<string>`
+**ProcessName=<string>**
 
 > The process name. uprocctl will rename itself to this name when running a module.
 
-`Description=<string>`
+**Description=<string>**
 
 > A description for the module.
 
 [NativeModule] sections may specify the following properties:
 
-`NativeLib=<string>`
+**NativeLib=<string>**
 
 > By default, uprocd will look for a .so file with the same name as the .module file.
 > This will change the name of the .so file to look for.
 
-A [DerivedModule] section `must` specify the following properties:
+A [DerivedModule] section **must** specify the following properties:
 
-`Base=<string>`
+**Base=<string>**
 
 > The name of the native module that this derived module is extending.
 
@@ -78,19 +78,19 @@ Native modules may ask for properties that a derived module must pass. These are
 declared via the [Properties] section. Each key in the section will be a property name,
 and each value will be the type of property. The following types are supported:
 
-`string`
+**string**
 
 > A string value.
 
-`number`
+**number**
 
 > A number value. This may be either a floating point number or an integer.
 
-`list string`
+**list string**
 
 > A space-seperated list of strings.
 
-`list number`
+**list number**
 
 > A space-seperated list of numbers.
 

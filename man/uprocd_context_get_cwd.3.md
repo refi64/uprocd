@@ -10,7 +10,7 @@ UPROCD_EXPORT const char * uprocd_context_get_cwd(uprocd_context *ctx)
 
 ## DESCRIPTION
 
-This function will return the working directory of the `uprocctl`(1) process that
+This function will return the working directory of the uprocctl(1) process that
 called this module.
 
 ## EXAMPLE

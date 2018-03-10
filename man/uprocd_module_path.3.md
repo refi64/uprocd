@@ -23,7 +23,7 @@ sprintf(full_path, "%s/%s", directory, path);
 // full_path is the result.
 ```
 
-The return value must be freed using `uprocd_module_path_free`(3).
+The return value must be freed using uprocd_module_path_free(3).
 
 ## RETURN VALUE
 

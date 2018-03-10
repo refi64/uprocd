@@ -1,4 +1,4 @@
-# uprocd_config_number_at(3) -- Return the number at the given index of a list
+# uprocd_config_number_at -- Return the number at the given index of a list
 
 ## SYNOPSIS
 
@@ -11,7 +11,7 @@ UPROCD_EXPORT double uprocd_config_number_at(const char *list, int index);
 ## DESCRIPTION
 
 This function will retrieve the number at the given index of the given list. To retrieve
-a number property, use `uprocd_config_number`(3).
+a number property, use uprocd_config_number(3).
 
 ## RETURN VALUE
 
@@ -19,7 +19,7 @@ The number's value, or 0 if the list is not present or index is invalid. It is u
 to call this function on a non-number list value.
 
 To distinguist between 0 values and non-present lists or invalid indexes, use
-`uprocd_config_present`(3) and `uprocd_config_list_size`(3).
+uprocd_config_present(3) and uprocd_config_list_size(3).
 
 ## EXAMPLE
 
