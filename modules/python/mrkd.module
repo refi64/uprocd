@@ -1,0 +1,18 @@
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
+[DerivedModule]
+Base=python
+Preload=
+  import sys
+  sys.argv = []
+  import mrkd
+Run=
+  import mrkd, plac, sys
+  sys.argv[0] = 'mrkd'
+
+  orig = plac.call
+  def call(f): orig(f, sys.argv[1:])
+  plac.call = call
+  mrkd.main()

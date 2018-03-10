@@ -29,6 +29,7 @@ def arguments(parser):
                        action='store_true', default=False)
     group.add_argument('--pkg-config', help='Use the given pkg-config executable')
     group.add_argument('--ruby', help='Use the given Ruby binary')
+    group.add_argument('--mrkd', help='Use the given mrkd executable')
     group.add_argument('--destdir', help='Set the installation destdir', default='/')
     group.add_argument('--prefix', help='Set the installation prefix', default='usr')
     group.add_argument('--auto-service',
@@ -41,9 +42,9 @@ class Judy(Test):
 
 
 class MrkdBuilder(fbuild.db.PersistentObject):
-    def __init__(self, ctx):
+    def __init__(self, ctx, exe=None):
         self.ctx = ctx
-        self.mrkd = find_program(ctx, ['mrkd'])
+        self.mrkd = exe or find_program(ctx, ['mrkd'])
 
     @fbuild.db.cachemethod
     def convert(self, src: fbuild.db.SRC, *, index: fbuild.db.SRC, outdir, format):
@@ -163,7 +164,7 @@ def _configure(ctx, print_):
             ruby = run_pkg_config(ctx, 'ruby-%s' % ruby_ver)
 
     try:
-        mrkd = MrkdBuilder(ctx)
+        mrkd = MrkdBuilder(ctx, ctx.options.mrkd)
     except fbuild.ConfigFailed:
         mrkd = None
 
@@ -270,8 +271,8 @@ def build(ctx):
 
     modules = [
         Module(name='python', pkg=rec.python3, sources='python.c',
-               others=['ipython', 'mypy'], files=['_uprocd_modules.py'],
-               links=['upython', 'uipython', 'umypy']),
+               others=['ipython', 'mrkd', 'mypy'], files=['_uprocd_modules.py'],
+               links=['upython', 'uipython', 'umrkd', 'umypy']),
         Module(name='ruby', pkg=rec.ruby, sources='ruby.c', others=[],
                files=['_uprocd_requires.rb'], links=['uruby']),
     ]
