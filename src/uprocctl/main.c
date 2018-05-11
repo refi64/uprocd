@@ -149,7 +149,8 @@ int status(const char *module) {
 }
 
 int wait_for_process() {
-  if (ptrace(PTRACE_SEIZE, target_pid, NULL, (void*)PTRACE_O_TRACEEXIT) == -1) {
+  if (ptrace(PTRACE_SEIZE, target_pid, NULL,
+             (void*)(PTRACE_O_EXITKILL | PTRACE_O_TRACEEXIT)) == -1) {
     FAIL("Error seizing %I via ptrace: %s", target_pid, strerror(errno));
     return 1;
   }
